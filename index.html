@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>我的課表</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <nav class="nav" aria-label="主選單">
+    <div class="brand"><span class="logo">▦</span><b>我的課表</b></div>
+    <button data-view="week"><i>▦</i><span>週課表</span></button>
+    <button data-view="today"><i>☰</i><span>今日</span></button>
+    <button data-view="tasks"><i>☑</i><span>作業</span><em id="badge" hidden></em></button>
+    <button data-view="settings"><i>⚙</i><span>設定</span></button>
+    <div class="foot" id="foot"></div>
+  </nav>
+
+  <main>
+    <!-- 週課表 -->
+    <section id="view-week" class="view">
+      <header class="bar">
+        <h1>週課表</h1>
+        <div class="pager">
+          <button id="prev" aria-label="上一週">‹</button>
+          <span id="weekLabel"></span>
+          <button id="next" aria-label="下一週">›</button>
+          <button id="thisWeek" class="ghost">回到本週</button>
+        </div>
+        <button id="addBtn" class="primary">＋ 新增課程</button>
+      </header>
+      <div class="legend" id="legend"></div>
+      <div class="grid" id="grid"></div>
+      <p class="hint">點課程看詳細內容 · 點空白格子可直接新增課程</p>
+    </section>
+
+    <!-- 今日 -->
+    <section id="view-today" class="view">
+      <div id="today"></div>
+    </section>
+
+    <!-- 作業與考試 -->
+    <section id="view-tasks" class="view">
+      <header class="bar"><h1>作業與考試</h1></header>
+      <form id="taskForm" class="inline">
+        <input id="tTitle" placeholder="新增作業或考試" required>
+        <select id="tCourse" aria-label="課程"></select>
+        <select id="tDue" aria-label="截止日">
+          <option value="1">週一</option><option value="2">週二</option><option value="3">週三</option>
+          <option value="4">週四</option><option value="5" selected>週五</option>
+        </select>
+        <button class="primary">新增</button>
+      </form>
+      <ul class="tasks" id="taskList"></ul>
+    </section>
+
+    <!-- 設定 -->
+    <section id="view-settings" class="view">
+      <header class="bar"><h1>設定</h1></header>
+      <div class="panel">
+        <label>學期名稱<input id="sTerm"></label>
+        <label>第 1 週的星期一<input id="sStart" type="date"></label>
+        <button id="reset" class="ghost danger">還原範例資料</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- 課程詳細 -->
+<dialog id="detail" class="sheet" aria-label="課程詳細"></dialog>
+
+<!-- 新增課程 -->
+<dialog id="form" class="modal" aria-label="新增課程">
+  <form id="courseForm">
+    <h2>新增課程</h2>
+    <label>課程名稱<input id="fName" required></label>
+    <div class="two">
+      <label>教室<input id="fRoom"></label>
+      <label>老師<input id="fTeacher"></label>
+    </div>
+    <div class="two">
+      <label>星期
+        <select id="fDay"><option value="1">週一</option><option value="2">週二</option><option value="3">週三</option><option value="4">週四</option><option value="5">週五</option></select>
+      </label>
+      <label>類別<select id="fType"></select></label>
+    </div>
+    <div class="two">
+      <label>開始<input id="fS" type="time" step="300" required></label>
+      <label>結束<input id="fE" type="time" step="300" required></label>
+    </div>
+    <p id="fErr" class="err" role="alert"></p>
+    <div class="actions">
+      <button type="button" class="ghost" data-close>取消</button>
+      <button class="primary">儲存</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="script.js"></script>
+</body>
+</html>
