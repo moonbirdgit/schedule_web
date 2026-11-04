@@ -28,6 +28,16 @@ npm run probe      # 看程式從學校登入頁偵測到哪些欄位（除錯�
 - `semester`：分工圖上訂的統一 JSON（`periods`、`courses[].times[]`，day 1=週一…7=週日）
 - `courses`：轉好的 `script.js` 格式（`{id,name,room,teacher,day,s,e,type,credits}`），前端確認後直接寫進 `S.courses`
 
+### 北商登入頁的特殊做法（已照實際原始碼處理）
+
+- 驗證碼欄 `CheckCode` **沒有 name**，不跟表單一起送。前端原本是先用 AJAX 打 `/HttpRequest/Login.ashx`（`CheckCode=…&Model=Check_Code_TF`）檢查驗證碼，答對才去按隱藏的 `loginbtn` 送出表單。伺服器照同樣順序做：
+  1. `GET login.aspx` → 拿 `__VIEWSTATE` 等隱藏欄位
+  2. `GET /HttpRequest/MakeCheckCodePIC.ashx` → 驗證碼圖片（同時建立 session cookie）
+  3. `POST /HttpRequest/Login.ashx` → 回應裡有 `loginbtn` 才算驗證碼正確，否則取 alert 的訊息
+  4. `POST login.aspx`：隱藏欄位 + `Type=0`（身分別：學生）+ `UserID` + `PWD` + `loginbtn`
+  5. 成功會轉到 `Portal/indexSTD.aspx`，再進 `Portal/Main_total.aspx?SysID=STDWEB` → `STDWEB/Sel_Student.aspx`
+- 密碼最多 20 個字元（學校限制）
+
 ## 密碼
 
 - 密碼只出現在 `finishLogin()` 那一次 POST，不存進 session、不寫 log

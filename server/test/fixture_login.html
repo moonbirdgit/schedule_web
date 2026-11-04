@@ -1,0 +1,435 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1"><meta http-equiv="X-Frame-Options" content="deny" /><title>
+	國立臺北商業大學校務行政管理系統
+</title>
+    <style type="text/css">
+        <!--
+        @import url("Inc/stylec.css");
+        @import url("Inc/buttonStyle.css");
+
+        body {
+            margin-left: 0px;
+            margin-top: 0px;
+            margin-right: 0px;
+            margin-bottom: 0px;
+            background-image: url(images/all_bg.gif);
+        }
+        -->
+    </style>
+    <script src="/Inc/PubJScript.js?Version=20261104195627"></script>
+    <script type="text/javascript">
+        
+
+        function OpenWindow(sURL, sTarget, obj) {
+            if (obj.disabled == false) {
+                myform.action = sURL;
+                myform.target = sTarget;
+                myform.submit();
+            }
+        }
+        //設定日期
+        function SetDate(Date, obj) {
+            var ReturnValue;
+
+            ReturnValue = window.showModalDialog('EMP/EmpSetDate.aspx', Date, DialogLocation('350', '300'));
+            if (typeof (ReturnValue) !== 'undefined') {
+                document.getElementById(obj).value = ReturnValue;
+            }
+        }
+        function DialogLocation(dialogWidth, dialogHeight) {//showModalDialog置中
+            var iWidth = dialogWidth;
+            var iHeight = dialogHeight;
+            var iTop = (window.screen.availHeight - 20 - iHeight) / 2;
+            var iLeft = (window.screen.availWidth - 10 - iWidth) / 2;
+            return 'dialogWidth:' + iWidth + 'px;dialogHeight:' + iHeight + 'px;dialogTop: ' + iTop + 'px; dialogLeft: ' + iLeft + 'px;center:yes;scroll:no;status:no;resizable:0;location:no';
+        }
+    </script>
+    <script>
+        function Do_Login() {
+            var http = new XMLHttpRequest();
+            var url = "/HttpRequest/Login.ashx";
+            var params = 'CheckCode=' + document.getElementById('CheckCode').value;
+            params += '&Model=Check_Code_TF';
+
+            http.open("POST", url, true);
+
+            http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            http.setRequestHeader("Content-length", params.length);
+            http.setRequestHeader("Connection", "close");
+
+            http.onreadystatechange = function () {
+                if (http.readyState == 4) {
+                    if (http.status == 200) {
+                        Show_Login(http.responseText);
+                    } else {
+                        return alert('伺服器錯誤');
+                    }
+                }
+            };
+
+            http.send(params);
+        }
+
+        function Show_Login(JData) {
+           
+            var pwdField = document.getElementById('PWD');
+
+            if (JData.indexOf("loginbtn") !== -1) {
+              
+                if (pwdField.value.length > 20) {
+                    alert("密碼長度不可超過 20 個字元！");
+
+                  
+                    document.getElementById('CheckCode').value = '';
+                    document.getElementById('Validation_Image').setAttribute('src', '/HttpRequest/MakeCheckCodePIC.ashx?' + Math.random());
+
+                    return; 
+                }
+            }
+            eval(JData);
+            
+            
+        }
+    </script>
+    <script>
+        window.onload = function () {
+            document.getElementById('Type').onchange = function () {
+                switch (this.value) {
+                    case '0':
+                        document.getElementById('LaUserID').innerText = '學號';
+                        document.getElementById('lbl_PWD').innerText = '密碼';
+                        document.getElementById('lbl_UID_Memo').style.display = 'none';
+                        document.getElementById('lbl_PWD_Memo').style.display = 'none';
+                        break;
+                    case '1':
+                        document.getElementById('LaUserID').innerText = '帳號';
+                        document.getElementById('lbl_PWD').innerText = '密碼';
+                        document.getElementById('lbl_UID_Memo').style.display = 'none';
+                        document.getElementById('lbl_PWD_Memo').style.display = 'none';
+                        break;
+                    case '2':
+                        document.getElementById('LaUserID').innerText = '帳號';
+                        document.getElementById('lbl_PWD').innerText = '密碼';
+                        document.getElementById('lbl_UID_Memo').style.display = 'none';
+                        document.getElementById('lbl_PWD_Memo').style.display = 'none';
+                        break;
+                    case '3':
+                        document.getElementById('LaUserID').innerText = '帳號';
+                        document.getElementById('lbl_PWD').innerText = '出生年月日';
+                        document.getElementById('lbl_UID_Memo').style.display = 'inline';
+                        document.getElementById('lbl_PWD_Memo').style.display = 'inline';
+                        break;
+                }
+            };
+
+            document.getElementById('Type').onchange();
+
+            document.body.onkeypress = function () {
+                if (event.keyCode == 13) { return false; }
+            };
+
+            
+
+            document.getElementById('UserID').setAttribute('onkeypress', 'if (event.keyCode == 13) { document.getElementById(\'PWD\').focus(); }');
+            document.getElementById('PWD').setAttribute('onkeypress', 'if (event.keyCode == 13) { document.getElementById(\'CheckCode\').focus(); }');
+            document.getElementById('CheckCode').setAttribute('onkeypress', 'if (event.keyCode == 13) { Do_Login(); }');
+
+        }
+    </script>
+</head>
+<body>
+    <form name="form1" method="post" action="./login.aspx" id="form1">
+<div>
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__LASTFOCUS" id="__LASTFOCUS" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="kAPH187oGm0iWYVEBfMplA4UgXSbZRPlsIIxGWmkjcsQiMxNH25nRb1RqQ1PZtuS4P6xAeuluYsuATy7At6vCle7xWuxRqRheqDCPxFEiLNH0x6rjXSMOtPBPhXMtuRqiyLUs70XKZ/A7JxthEmILV5F5eM/KXP9tFQx9+RD8BlO8b1Vk2OAEWRyQnAw03s334O+WRpM+85PXywYKqA8xtXe6KcOZeOQ9Kb2+7zZlN/VP2Dt5SQa5HichapjJ5nSRLvqwgeLgr5lvAPWrgp7LCT3FGpt6WX5NC64He37/Of81VPXhmqUxgRJ4E3mA6WHLcrkAnrcLFSF7y6wTfvcVU1k7INHGWgS8z+TQqPtfMTwbEEWXFBHjuUt1PUvPwKMAFPOsuDlMrRci02tuyltg5zPs3KdmuDQgtWJnz6MVhErPnmh2SnYSugjBMPuS7fUVmiezABbpvnDJkqC9JmP2Q==" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['form1'];
+if (!theForm) {
+    theForm = document.form1;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=krW6UtyjvTyTt2f0wjjhGcAqfOxtmeLLTpZww5CnHl1rBxg1v_2plzJ7r_U4Q_ZIWe1rgbU2I93zN09ipbRShV3dNrxlpKVNxDQTwiopDSw1&amp;t=637585781762593609" type="text/javascript"></script>
+
+
+<script src="/ScriptResource.axd?d=JM7WM5L0_1PkFJlMTQYomtNBw6uTZ_JhZ5GbEdgzi0bkRLIQvXlEPfw-5jSB6wGB2nMazSp7W0Mg84a2376MDj245ek36q-gbREMqcOpJ8alIMC2Vy8MmVTwdhMCKeV_0Q7THEJrCd4dP3xhk4_Oyg2&amp;t=f2cd5c5" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+if (typeof(Sys) === 'undefined') throw new Error('ASP.NET Ajax 用戶端架構無法載入。');
+//]]>
+</script>
+
+<script src="/ScriptResource.axd?d=UeX3qiLTij-NPy5WOIRvvWHAzNpZv-E7uN3nDHYraXHAXvk1Y9xKPUHwpEKckn9nFcpCHlCg3rwOmtkRfI9VQVCiNPiAiE3HT8QcGcCLnBTR1-Y7M5QtgU1Y5EV4AW3_xkW3ZzZj9AwjlO9sRjmtKw2&amp;t=f2cd5c5" type="text/javascript"></script>
+<div>
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="C2EE9ABB" />
+	<input type="hidden" name="__VIEWSTATEENCRYPTED" id="__VIEWSTATEENCRYPTED" value="" />
+</div>
+        <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('Scriptmanager1', 'form1', [], [], [], 90, '');
+//]]>
+</script>
+
+        <div>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" width="1003">
+                <tr>
+                    <td>
+                        <table border="0" cellpadding="0" cellspacing="0" width="1003">
+                            <tr>
+                                <td>
+                                    <table background="/images/top_bg01.jpg" border="0" cellpadding="0" 
+                                        cellspacing="0" height="84" width="1003">
+                                        <tr>
+                                            <td height="55">
+                                                <table width="1003" height="55" border="0" cellspacing="0" cellpadding="0">
+                                                    <tr>
+                                                        <td width="853" class="top_word01">
+                                                            <span id="SchName">國立臺北商業大學校務行政管理系統</span>
+                                                        </td>
+                                                        <td width="150px">
+                                                            <div align="right" class="top_word03">
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="top_word02" height="29" valign="top">
+                                                &nbsp;</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table background="images/top_bg02.jpg" border="0" cellpadding="0" 
+                                        cellspacing="0" height="33" width="1003">
+                                        <tr>
+                                            <td>
+                                                &nbsp;</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table background="images/log_allbg.jpg" border="0" cellpadding="0" 
+                            cellspacing="0" width="1003">
+                            <tr>
+                                <td>
+                                    &nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table border="0" cellpadding="0" cellspacing="0" width="1003">
+                                        <tr>
+                                            <td valign="top" width="684">
+                                                <table align="center" border="0" cellpadding="0" cellspacing="0" width="660">
+                                                    <tr>
+                                                        <td>
+                                                            <img align="right" src="images/log_banner.jpg"  width="580" />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                <img height="302" src="images/log_precautions.png" 
+                                                    width="430" />
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                            <td bgcolor="#CCCCCC" valign="top" width="1">
+                                                <img height="1" src="images/space.gif" width="1" />
+                                            </td>
+                                            <td valign="top" width="318">
+                                                <table align="center" border="0" cellpadding="0" cellspacing="0" width="258">
+                                                    <tr>
+                                                        <td>
+                                                            <table align="center" bgcolor="#c8bb8c" border="0" cellpadding="0" cellspacing="1" width="258">
+                                                                <tr>
+                                                                    <td style="background-color:#FDFAF3;">
+                                                                        <table border="0" style="width:270px; border-collapse:collapse;">
+                                                                            <tr>
+                                                                                <td colspan="3">
+                                                                                    <img src="images/log_form_title.jpg" style="width:100%;" />
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td>
+                                                                                    &nbsp;
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td style="width:80px; text-align:center;">
+                                                                                    <label class="indexword01">身分別</label>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <select name="Type" onchange="javascript:setTimeout(&#39;__doPostBack(\&#39;Type\&#39;,\&#39;\&#39;)&#39;, 0)" id="Type" style="width:80px;">
+	<option selected="selected" value="0">學生</option>
+	<option value="1">教職員</option>
+	<option value="3">新生</option>
+
+</select>
+                                                                                </td>
+                                                                                <td style="width:70px;">
+
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td>
+                                                                                    &nbsp;
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td style="text-align:center;">
+                                                                                    
+                                                                                    <span id="LaUserID" class="indexword01">帳號</span>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input name="UserID" type="text" maxlength="15" id="UserID" style="width:118px;" />
+                                                                                </td>
+                                                                                <td rowspan="4" style="width:70px; text-align:center;">
+                                                                                    <input id="Client_Login" type="button" class="login" onclick="Do_Login();" style="" />
+                                                                                    <input type="submit" name="loginbtn" value="" id="loginbtn" class="login" style="display:none;" />
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td colspan="2">
+                                                                                    <label id="lbl_UID_Memo" style="color:#FF0000; font-size:9pt; display:none;">本國生輸入身分證字號、境外生輸入護照號碼。</label>&nbsp;
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td style="text-align:center;">
+                                                                                    <label id="lbl_PWD" class="indexword01">密碼</label>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input name="PWD" type="password" maxlength="20" id="PWD" style="width:118px;" />
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td colspan="2">
+                                                                                    <label id="lbl_PWD_Memo" style="color:#FF0000; font-size:9pt; display:none;">密碼格式如：1999/5/9</label>&nbsp;
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td style="text-align:center;">
+                                                                                    <label class="indexword01">驗證碼</label>
+                                                                                </td>
+                                                                                <td colspan="2">
+                                                                                    <input id="CheckCode" type="text" value="" style="width:60px;" />
+                                                                                    &nbsp;
+                                                                                    <img src="/HttpRequest/MakeCheckCodePIC.ashx" id="Validation_Image" style="vertical-align:middle;"/>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td>
+                                                                                    &nbsp;
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td style="text-align:center;">
+                                                                                            
+                                                                                </td>
+                                                                                <td>
+                                                                                    <label class="indexword01">
+                                                                                        <a href="./EMP/ForgetPwdTS.aspx" id="forget_pwd" target="_pwd" class="indexword02">忘記密碼</a>
+                                                                                    </label>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <tr style="display:none;">
+                                                                                <td>
+                                                                                    <span id="LaPwd">密碼</span>
+                                                                                    <span id="lbl_CheckCode">驗證碼</span>
+                                                                                    
+                                                                                    
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <img height="22" src="images/log_form_sha.png" width="258" />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <table border="0" cellpadding="0" cellspacing="0" width="258">
+                                                                <tr>
+                                                                    <td valign="top" width="44">
+                                                                        <img height="43" src="images/log_hllogo.png" width="41" />
+                                                                    </td>
+                                                                    <td class="logword01" valign="center" width="214">
+                                                                        漢龍資訊科技股份有限公司 系統開發<br /> 地址：台北市南港區園區街3-2號5樓之3
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td style="height:5px" colspan="2" class="dword">
+                                                                        <span id="lblLog">更新日期：2017-10-13 09:10:36</span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td colspan="2" align="left">
+                                                                        <table style="width:110%; text-align:left;">
+                                                                            <tr>
+                                                                                    <td style="width:5px;">
+                                                                                        <img src="images/right_icon.gif" width="5" height="5" />
+                                                                                    </td>
+                                                                                    <td style="width:auto;">
+                                                                                    <span id="Label1" class="indexword02">教職員及學生首次登入</span>
+                                                                                    <span id="Label3" class="indexword02">，密碼為</span>
+                                                                                    <span id="Label4" style="color:#FF3300;font-size:Small;font-weight:bold;">身分證字號</span>
+                                                                                        &nbsp;
+
+                                                                                    </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    &nbsp;</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</body>
+</html>

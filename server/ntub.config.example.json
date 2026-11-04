@@ -1,7 +1,7 @@
 {
-  "accountField": "txtUserID",
-  "passwordField": "txtPassword",
-  "captchaField": "txtCheckCode",
-  "captchaImage": "ValidateCode.aspx",
-  "submitField": "btnLogin"
+  "accountField": "UserID",
+  "passwordField": "PWD",
+  "captchaImage": "/HttpRequest/MakeCheckCodePIC.ashx",
+  "submitField": "loginbtn",
+  "selects": { "Type": "0" }
 }

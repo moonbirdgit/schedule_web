@@ -15,7 +15,7 @@ const path = require('node:path');
 const { parseSchedule } = require('./parse');
 const { recognize } = require('./ocr');
 
-const BASE = 'https://ntcbadm1.ntub.edu.tw/';
+const BASE = process.env.NTUB_BASE || 'https://ntcbadm1.ntub.edu.tw/';
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36';
 const SESSION_TTL = 5 * 60 * 1000;
 
@@ -67,7 +67,8 @@ async function request(jar, url, { method = 'GET', form, referer } = {}) {
   throw new Error('轉址太多次');
 }
 
-function decodeHtml(buf, contentType = '') {
+function decodeHtml(buf, contentType) {
+  contentType = contentType || '';
   let cs = (contentType.match(/charset=([\w-]+)/i) || [])[1];
   if (!cs) cs = (buf.subarray(0, 2048).toString('latin1').match(/charset=["']?([\w-]+)/i) || [])[1];
   try { return new TextDecoder(cs || 'utf-8').decode(buf); } catch { return new TextDecoder('utf-8').decode(buf); }
@@ -81,7 +82,8 @@ function readForm(html) {
   const f = html.match(/<form\b[^>]*>[\s\S]*?<\/form>/i);
   if (!f) throw new Error('登入頁找不到 <form>');
   const formTag = attrs(f[0].match(/<form\b[^>]*>/i)[0]);
-  const inputs = [...f[0].matchAll(/<input\b[^>]*>/gi)].map(m => attrs(m[0])).filter(a => a.name);
+  const allInputs = [...f[0].matchAll(/<input\b[^>]*>/gi)].map(m => attrs(m[0]));
+  const inputs = allInputs.filter(a => a.name);
   const imgs = [...f[0].matchAll(/<img\b[^>]*>/gi)].map(m => attrs(m[0]));
   const typeOf = a => (a.type || 'text').toLowerCase();
 
@@ -89,6 +91,10 @@ function readForm(html) {
   const textish = inputs.filter(a => ['text', 'tel', 'number', 'email', ''].includes(typeOf(a)));
   const password = CONFIG.passwordField || (inputs.find(a => typeOf(a) === 'password') || {}).name;
   const captcha = CONFIG.captchaField || (textish.find(a => captchaRe.test(a.name + ' ' + (a.id || ''))) || {}).name;
+  // 北商的驗證碼欄（id="CheckCode"）沒有 name，不跟表單一起送，而是先用 AJAX 打 /HttpRequest/Login.ashx 檢查
+  const captchaId = !captcha && (allInputs.find(a => !a.name && a.id && captchaRe.test(a.id)) || {}).id;
+  const ajax = html.match(/["']([^"']*Login\.ashx)["']/i);
+  const check = ajax ? { url: ajax[1], model: (html.match(/Model=(\w+)/) || [])[1] || 'Check_Code_TF', field: captchaId || 'CheckCode' } : null;
   const account = CONFIG.accountField || (textish.find(a => a.name !== captcha) || {}).name;
   const submit = CONFIG.submitField
     ? inputs.find(a => a.name === CONFIG.submitField)
@@ -99,10 +105,18 @@ function readForm(html) {
 
   const hidden = {};
   for (const a of inputs) if (typeOf(a) === 'hidden') hidden[a.name] = a.value || '';
+  // <select>（例如北商的「身分別」Type）也要一起送，用預設選中的值
+  for (const m of f[0].matchAll(/<select\b([^>]*)>([\s\S]*?)<\/select>/gi)) {
+    const a = attrs('<x ' + m[1] + '>');
+    if (!a.name) continue;
+    const opts = [...m[2].matchAll(/<option\b([^>]*)>/gi)].map(o => ({ value: attrs('<x ' + o[1] + '>').value || '', selected: /\bselected\b/i.test(o[1]) }));
+    const sel = opts.find(o => o.selected) || opts[0];
+    hidden[a.name] = CONFIG.selects && CONFIG.selects[a.name] != null ? String(CONFIG.selects[a.name]) : (sel ? sel.value : '');
+  }
 
   return {
     action: formTag.action || 'login.aspx',
-    hidden, account, password, captcha,
+    hidden, account, password, captcha, check,
     submit: submit ? { name: submit.name, value: submit.value || '', image: typeOf(submit) === 'image' } : null,
     captchaSrc: img && img.src ? decodeEntities(img.src) : null
   };
@@ -146,7 +160,7 @@ async function startLogin() {
   const s = { jar, form, loginUrl: r.url, at: Date.now() };
   sessions.set(sid, s);
   const cap = await loadCaptcha(s);
-  return { sid, ...cap, needCaptcha: !!form.captcha };
+  return { sid, ...cap, needCaptcha: !!(form.captcha || form.check || form.captchaSrc) };
 }
 
 /** 換一張驗證碼（同一個 session） */
@@ -159,9 +173,11 @@ async function refreshCaptcha(sid) {
   return { sid, ...(await loadCaptcha(s)) };
 }
 
+// 取頁面上「最後一個」alert 的文字：登入頁本身的程式碼裡也有 alert('伺服器錯誤') 之類的，要跳過
+const BUILTIN_ALERTS = /伺服器錯誤|密碼長度不可超過/;
 const alertMsg = html => {
-  const m = html.match(/alert\(\s*['"]([^'"]+)['"]\s*\)/);
-  return m ? m[1].replace(/\\n/g, ' ').trim() : '';
+  const all = [...html.matchAll(/alert\(\s*['"]([^'"]+)['"]\s*\)/g)].map(m => m[1].replace(/\\n/g, ' ').trim());
+  return all.reverse().find(t => !BUILTIN_ALERTS.test(t)) || '';
 };
 
 /** 第 2 步：送出登入 */
@@ -169,6 +185,17 @@ async function finishLogin(sid, account, password, code) {
   const s = sessions.get(sid);
   if (!s) throw new LoginError('登入逾時，請重新整理驗證碼', 'EXPIRED');
   const f = s.form;
+  if (password.length > 20) throw new LoginError('密碼長度不可超過 20 個字元', 'LOGIN_FAILED');
+
+  // 北商：先檢查驗證碼。答對時回傳的 JS 會去按隱藏的 loginbtn，答錯會 alert
+  if (f.check) {
+    const r0 = await request(s.jar, new URL(f.check.url, s.loginUrl).href, {
+      method: 'POST', referer: s.loginUrl, form: { [f.check.field]: code, Model: f.check.model }
+    });
+    const js = r0.text();
+    if (!/loginbtn/.test(js)) throw new LoginError(alertMsg(js) || '驗證碼錯誤', 'CAPTCHA');
+  }
+
   const body = { ...f.hidden, [f.account]: account, [f.password]: password };
   if (f.captcha) body[f.captcha] = code;
   if (f.submit) {
@@ -177,7 +204,7 @@ async function finishLogin(sid, account, password, code) {
   }
   const r = await request(s.jar, new URL(f.action, s.loginUrl).href, { method: 'POST', form: body, referer: s.loginUrl });
   const html = r.text();
-  const stillLogin = /type=["']?password/i.test(html) && /login\.aspx/i.test(r.url);
+  const stillLogin = !/\/Portal\//i.test(r.url) && /type=["']?password/i.test(html) && /login\.aspx/i.test(r.url);
   if (stillLogin) {
     const msg = alertMsg(html);
     const isCaptcha = /驗證碼|檢查碼|verif|captcha/i.test(msg);
@@ -191,7 +218,7 @@ async function finishLogin(sid, account, password, code) {
 async function fetchSchedule(s, { year, term } = {}) {
   // 先經過入口頁，讓學校系統建立 STDWEB 的 session
   await request(s.jar, 'Portal/Main_total.aspx?SysID=STDWEB').catch(() => {});
-  let r = await request(s.jar, 'STDWEB/Sel_Student.aspx', { referer: BASE + 'Portal/indexSTD.aspx' });
+  let r = await request(s.jar, 'STDWEB/Sel_Student.aspx', { referer: BASE + 'Portal/Main_total.aspx?SysID=STDWEB' });
   let html = r.text();
   if (/login\.aspx/i.test(r.url) && !/bgBase/.test(html)) throw new LoginError('登入狀態失效，請重新登入', 'EXPIRED');
   let data = parseSchedule(html);

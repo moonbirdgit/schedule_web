@@ -55,3 +55,15 @@ test('自動偵測 ASP.NET 登入表單', () => {
   assert.strictEqual(f.captchaSrc, 'ValidateCode.aspx?x=1&y=2');
   assert.deepStrictEqual(Object.keys(f.hidden), ['__VIEWSTATE', '__EVENTVALIDATION']);
 });
+
+test('北商真實登入頁：AJAX 驗證碼檢查 + 身分別', () => {
+  const f = readForm(fs.readFileSync(path.join(__dirname, 'fixture_login.html'), 'utf8'));
+  assert.strictEqual(f.account, 'UserID');
+  assert.strictEqual(f.password, 'PWD');
+  assert.strictEqual(f.captcha, undefined); // CheckCode 沒有 name，不在表單裡
+  assert.deepStrictEqual(f.check, { url: '/HttpRequest/Login.ashx', model: 'Check_Code_TF', field: 'CheckCode' });
+  assert.strictEqual(f.captchaSrc, '/HttpRequest/MakeCheckCodePIC.ashx');
+  assert.deepStrictEqual(f.submit, { name: 'loginbtn', value: '', image: false });
+  assert.strictEqual(f.hidden.Type, '0'); // 學生
+  assert.ok(f.hidden.__VIEWSTATE);
+});
