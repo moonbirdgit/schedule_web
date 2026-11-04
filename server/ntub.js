@@ -13,7 +13,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { parseSchedule } = require('./parse');
-const { recognize } = require('./ocr');
+const { recognize, status: ocrStatus } = require('./ocr');
 
 const BASE = process.env.NTUB_BASE || 'https://ntcbadm1.ntub.edu.tw/';
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36';
@@ -128,7 +128,7 @@ async function probe() {
   const jar = new Jar();
   const r = await request(jar, 'login.aspx');
   const html = r.text();
-  return { status: r.status, url: r.url, cookies: [...jar.map.keys()], form: readForm(html) };
+  return { status: r.status, url: r.url, cookies: [...jar.map.keys()], form: readForm(html), ocr: ocrStatus() };
 }
 
 /* ---------- session ---------- */
@@ -138,18 +138,76 @@ setInterval(() => {
   for (const [k, s] of sessions) if (now - s.at > SESSION_TTL) sessions.delete(k);
 }, 60000).unref();
 
-async function loadCaptcha(s) {
-  if (!s.form.captchaSrc) return { image: null, guess: '' };
-  // 加時間參數，避免拿到快取的舊圖
+const MAX_TRIES = Math.max(1, Math.min(8, +(process.env.CAPTCHA_TRIES || 5)));
+const SAMPLE_DIR = path.join(__dirname, 'captcha-samples');
+
+/** 抓一張新的驗證碼圖片（同一個 session，學校那邊的答案也會跟著換） */
+async function fetchCaptcha(s) {
   const u = new URL(s.form.captchaSrc, s.loginUrl);
-  u.searchParams.set('_', Date.now());
+  u.searchParams.set('_', Date.now()); // 避免拿到快取的舊圖
   const r = await request(s.jar, u.href, { referer: s.loginUrl });
-  const mime = /image\/[\w+]+/.exec(r.type) ? /image\/[\w+]+/.exec(r.type)[0] : 'image/png';
-  const guess = await recognize(r.buf).catch(() => '');
-  return { image: `data:${mime};base64,${r.buf.toString('base64')}`, guess };
+  if (r.status !== 200 || !r.buf.length) throw new Error(`驗證碼圖片抓取失敗（${r.status}）`);
+  const mime = (/image\/[\w+]+/.exec(r.type) || ['image/png'])[0];
+  return { buf: r.buf, mime, image: `data:${mime};base64,${r.buf.toString('base64')}` };
 }
 
-/** 第 1 步：開 session，回傳驗證碼圖片和 OCR 猜的答案 */
+/** 問學校這個驗證碼對不對（北商的 Login.ashx）。對：回傳 true */
+async function checkCaptcha(s, code) {
+  const f = s.form;
+  const r = await request(s.jar, new URL(f.check.url, s.loginUrl).href, {
+    method: 'POST', referer: s.loginUrl, form: { [f.check.field]: code, Model: f.check.model }
+  });
+  const js = r.text();
+  return { ok: /loginbtn/.test(js), msg: alertMsg(js) };
+}
+
+/** NTUB_SAVE_CAPTCHA=1 時把驗證碼存起來，之後可以拿來調整辨識（檔名就是答案） */
+function saveSample(cap, label) {
+  if (process.env.NTUB_SAVE_CAPTCHA !== '1') return;
+  try {
+    fs.mkdirSync(SAMPLE_DIR, { recursive: true });
+    const ext = cap.mime.split('/')[1].replace('jpeg', 'jpg');
+    fs.writeFileSync(path.join(SAMPLE_DIR, `${label}_${Date.now()}.${ext}`), cap.buf);
+  } catch { /* 存不了就算了 */ }
+}
+
+/**
+ * 自動解驗證碼：辨識 → 問學校對不對 → 不對就換一張再試，最多 MAX_TRIES 次。
+ * 學校的登入頁本來就是「先檢查驗證碼、再送帳密」，所以這裡還不需要學號密碼。
+ * @returns {{image, guess, verified:boolean, tries:number, reason:string}}
+ *   reason: 'ok' 已確認正確 | 'unchecked' 有猜但學校沒提供檢查 | 'failed' 試完都不對
+ *           | 'no-ocr' 沒裝辨識套件 | 'no-captcha' 這個登入頁沒有驗證碼
+ */
+async function solveCaptcha(s) {
+  s.verified = null;
+  if (!s.form.captchaSrc) return { image: null, guess: '', verified: false, tries: 0, reason: 'no-captcha' };
+  const ocr = ocrStatus();
+  let cap = null, guess = '', tries = 0;
+  const canCheck = !!s.form.check;
+  const limit = ocr.ocr && canCheck ? MAX_TRIES : 1;
+  for (let i = 0; i < limit; i++) {
+    cap = await fetchCaptcha(s);
+    tries = i + 1;
+    if (!ocr.ocr) break;
+    guess = (await recognize(cap.buf).catch(() => ({ text: '' }))).text;
+    if (!guess) { saveSample(cap, 'x'); continue; }       // 認不出來 → 換一張
+    if (!canCheck) break;
+    const r = await checkCaptcha(s, guess);
+    if (r.ok) {
+      s.verified = guess;
+      saveSample(cap, guess);
+      return { image: cap.image, guess, verified: true, tries, reason: 'ok' };
+    }
+    saveSample(cap, 'x' + guess);
+    guess = '';
+  }
+  // 最後一次檢查失敗的話，學校那邊的答案已經失效了，要給使用者一張「還沒被檢查過」的新圖
+  if (ocr.ocr && canCheck) cap = await fetchCaptcha(s);
+  const reason = !ocr.ocr ? 'no-ocr' : guess ? 'unchecked' : 'failed';
+  return { image: cap.image, guess, verified: false, tries, reason };
+}
+
+/** 第 1 步：開 session，回傳驗證碼圖片和（已確認過的）答案 */
 async function startLogin() {
   const jar = new Jar();
   const r = await request(jar, 'login.aspx');
@@ -159,18 +217,19 @@ async function startLogin() {
   const sid = crypto.randomBytes(16).toString('hex');
   const s = { jar, form, loginUrl: r.url, at: Date.now() };
   sessions.set(sid, s);
-  const cap = await loadCaptcha(s);
-  return { sid, ...cap, needCaptcha: !!(form.captcha || form.check || form.captchaSrc) };
+  const cap = await solveCaptcha(s);
+  return { sid, ...cap, needCaptcha: !!form.captchaSrc };
 }
 
 /** 換一張驗證碼（同一個 session） */
-async function refreshCaptcha(sid) {
+async function refreshCaptcha(sid, { auto = true } = {}) {
   const s = sessions.get(sid);
-  if (!s) throw new LoginError('登入逾時，請重新整理驗證碼', 'EXPIRED');
+  if (!s) return startLogin(); // 逾時就重開一個，不要讓使用者看到錯誤
   // ASP.NET 的 __VIEWSTATE 會跟著頁面變，重抓一次登入頁比較保險
   const r = await request(s.jar, 'login.aspx');
   s.form = readForm(r.text()); s.loginUrl = r.url; s.at = Date.now();
-  return { sid, ...(await loadCaptcha(s)) };
+  if (!auto) { s.verified = null; const cap = await fetchCaptcha(s); return { sid, image: cap.image, guess: '', verified: false, tries: 0, reason: 'manual', needCaptcha: true }; }
+  return { sid, ...(await solveCaptcha(s)), needCaptcha: true };
 }
 
 // 取頁面上「最後一個」alert 的文字：登入頁本身的程式碼裡也有 alert('伺服器錯誤') 之類的，要跳過
@@ -187,14 +246,13 @@ async function finishLogin(sid, account, password, code) {
   const f = s.form;
   if (password.length > 20) throw new LoginError('密碼長度不可超過 20 個字元', 'LOGIN_FAILED');
 
-  // 北商：先檢查驗證碼。答對時回傳的 JS 會去按隱藏的 loginbtn，答錯會 alert
-  if (f.check) {
-    const r0 = await request(s.jar, new URL(f.check.url, s.loginUrl).href, {
-      method: 'POST', referer: s.loginUrl, form: { [f.check.field]: code, Model: f.check.model }
-    });
-    const js = r0.text();
-    if (!/loginbtn/.test(js)) throw new LoginError(alertMsg(js) || '驗證碼錯誤', 'CAPTCHA');
+  // 北商：先檢查驗證碼。答對時回傳的 JS 會去按隱藏的 loginbtn，答錯會 alert。
+  // 自動辨識時已經檢查過（s.verified），使用者沒改就不用再問一次
+  if (f.check && !(s.verified && s.verified === code)) {
+    const r0 = await checkCaptcha(s, code);
+    if (!r0.ok) { s.verified = null; throw new LoginError(r0.msg || '驗證碼錯誤', 'CAPTCHA'); }
   }
+  s.verified = null; // 驗證碼只能用一次
 
   const body = { ...f.hidden, [f.account]: account, [f.password]: password };
   if (f.captcha) body[f.captcha] = code;
@@ -240,4 +298,4 @@ async function fetchSchedule(s, { year, term } = {}) {
 
 function endSession(sid) { sessions.delete(sid); }
 
-module.exports = { startLogin, refreshCaptcha, finishLogin, fetchSchedule, endSession, probe, readForm, LoginError };
+module.exports = { solveCaptcha, fetchCaptcha, checkCaptcha, Jar, request, ocrStatus, startLogin, refreshCaptcha, finishLogin, fetchSchedule, endSession, probe, readForm, LoginError };
