@@ -1,3 +1,6 @@
 node_modules/
 server/ntub.config.json
+server/.cache/
+server/captcha-samples/
+*.traineddata
 .DS_Store
