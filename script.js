@@ -44,21 +44,30 @@ const DEFAULTS = {
   courses: [],
   tasks: []
 };
-let S = load();
+// 舊版預設塞的範例資料：用 id + 名稱 一起比對，只刪掉這些，使用者自己的資料一筆都不動
+const OLD_SAMPLE_COURSES = { c1: '計算機概論', c2: '英文（二）', c3: '微積分', c4: '網頁設計', c5: '資料結構', c6: '體育', c7: '微積分', c8: '通識：心理學', c9: '專題討論', c10: '網頁設計' };
+const OLD_SAMPLE_TASKS = ['資料結構 作業 4', '網頁設計 期中草稿', '微積分 小考', '期中專題：個人網站草稿', '資料結構 作業 4：Linked List', '英文 單字小考 Unit 6', 'CSS Flexbox 練習', '微積分 期中考', '心理學 課堂心得', 'HTML 表單練習'];
+function stripOldSample(d) {
+  const removed = new Set();
+  d.courses = d.courses.filter(c => { const hit = OLD_SAMPLE_COURSES[c.id] === c.name; if (hit) removed.add(c.name); return !hit; });
+  d.tasks = (d.tasks || []).filter(t => !(/^t\d+$/.test(t.id) && t.id.length <= 3 && OLD_SAMPLE_TASKS.includes(t.title)));
+  // 範例課的筆記、缺課紀錄：那門課已經不在課表上才刪
+  const left = new Set(d.courses.map(c => c.name));
+  for (const n of removed) if (!left.has(n)) { delete d.notes[n]; delete d.absent[n]; }
+  return d;
+}
 function load() {
   try {
     const d = JSON.parse(localStorage.getItem(KEY));
     if (d && d.courses) {
-      d.notes ||= {}; d.absent ||= {};
-      // 以前的版本會預先塞範例資料（id 是 c1–c10、t1–t7）。如果完全沒動過，就清掉，換成空白課表
-      const sample = d.courses.length && d.courses.every(c => /^c\d{1,2}$/.test(c.id)) && d.tasks.every(t => /^t\d$/.test(t.id));
-      if (sample && !d.v) { d.courses = []; d.tasks = []; d.notes = {}; d.absent = {}; }
-      d.v = 2;
+      d.notes ||= {}; d.absent ||= {}; d.tasks ||= [];
+      if (!(d.v >= 3)) { stripOldSample(d); d.v = 3; localStorage.setItem(KEY, JSON.stringify(d)); }
       return d;
     }
   } catch (e) { /* 忽略 */ }
-  return { ...structuredClone(DEFAULTS), v: 2 };
+  return { ...structuredClone(DEFAULTS), v: 3 };
 }
+let S = load(); // 要放在上面的常數之後，不然 load() 讀不到 OLD_SAMPLE_*
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* 忽略 */ } }
 
 /* ========== 時間計算 ========== */
@@ -511,7 +520,7 @@ $('#taskForm').onsubmit = e => {
 
 $('#sTerm').oninput = e => { S.term = e.target.value; save(); renderFoot(); };
 $('#sStart').onchange = e => { if (e.target.value) { S.start = e.target.value; save(); renderAll(); } };
-$('#reset').onclick = () => { if (confirm('確定要清除所有課程、作業和筆記嗎？清除後無法復原。')) { S = { ...structuredClone(DEFAULTS), v: 2 }; save(); renderAll(); } };
+$('#reset').onclick = () => { if (confirm('確定要清除所有課程、作業和筆記嗎？清除後無法復原。')) { S = { ...structuredClone(DEFAULTS), v: 3 }; save(); renderAll(); } };
 // 空白課表上的兩個按鈕
 document.addEventListener('click', e => {
   if (e.target.closest('[data-goto]')) { show(e.target.closest('[data-goto]').dataset.goto); return; }
