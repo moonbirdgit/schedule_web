@@ -13,7 +13,7 @@
     <div class="brand"><span class="logo">▦</span><b>我的課表</b></div>
     <button data-view="week"><i>▦</i><span>週課表</span></button>
     <button data-view="today"><i>☰</i><span>今日</span></button>
-    <button data-view="tasks"><i>☑</i><span>作業</span><em id="badge" hidden></em></button>
+    <button data-view="tasks"><i>☑</i><span>作業與考試</span><em id="badge" hidden></em></button>
     <button data-view="settings"><i>⚙</i><span>設定</span></button>
     <button data-view="login"><i>⇩</i><span>匯入</span></button>
     <div class="foot" id="foot"></div>
@@ -44,7 +44,10 @@
 
     <!-- 作業與考試 -->
     <section id="view-tasks" class="view">
-      <header class="bar"><h1>作業與考試</h1></header>
+      <header class="bar taskbar"><h1>作業與考試</h1><button id="taskAdd" class="primary">＋ 新增</button></header>
+      <div class="taskStats" id="taskStats"></div>
+      <div class="taskTools"><div class="taskFilters" role="tablist"><button class="on" data-filter="all">全部</button><button data-filter="作業">作業</button><button data-filter="考試">考試</button></div><label class="courseFilter"><select id="taskCourseFilter"><option value="all">所有課程</option></select></label><label class="showDone"><input type="checkbox" id="showDone" checked> 顯示已完成</label></div>
+      <div id="taskGroups"></div>
       <form id="taskForm" class="inline">
         <input id="tTitle" placeholder="新增作業或考試" required>
         <select id="tCourse" aria-label="課程"></select>
@@ -52,19 +55,22 @@
           <option value="1">週一</option><option value="2">週二</option><option value="3">週三</option>
           <option value="4">週四</option><option value="5" selected>週五</option>
         </select>
+        <select id="tKind" aria-label="類型"><option>作業</option><option>考試</option><option>小考</option></select>
         <button class="primary">新增</button>
       </form>
-      <ul class="tasks" id="taskList"></ul>
+      <ul class="tasks" id="taskList" hidden></ul>
     </section>
 
     <!-- 設定 -->
     <section id="view-settings" class="view">
       <header class="bar"><h1>設定</h1></header>
-      <div class="panel">
-        <label>學期名稱<input id="sTerm"></label>
-        <label>第 1 週的星期一<input id="sStart" type="date"></label>
-        <button id="toLogin" type="button" class="ghost">從北商校務系統匯入課表</button>
-        <button id="reset" class="ghost danger">還原範例資料</button>
+      <div class="settingsLayout">
+        <section class="settingsGroup periodsGroup"><h2>節次時間表</h2><p>每間學校不一樣，改成你們學校的時間</p><div id="periodRows"></div><button id="addPeriod" class="addPeriod">＋ 加第 9 節（晚上）</button></section>
+        <div class="settingsRight">
+          <section class="settingsGroup"><h2>課表顯示</h2><div class="settingRow"><b>顯示天數</b><div class="segmented" id="daysMode"><button data-value="5">週一–五</button><button data-value="6">週一–六</button><button data-value="7">整週</button></div></div><div class="settingRow"><b>課程格顯示</b><div class="segmented" id="courseMode"><button data-value="name">名稱</button><button data-value="room">名稱+教室</button><button data-value="all">全部</button></div></div><div class="settingRow"><div><b>顯示目前時間線</b><small>在今天那一欄畫一條紅線</small></div><button class="switch on" data-setting="timeLine" aria-label="切換目前時間線"></button></div><div class="settingRow"><div><b>深色模式</b><small>跟著系統切換</small></div><button class="switch" data-setting="dark" aria-label="切換深色模式"></button></div></section>
+          <section class="settingsGroup"><h2>提醒</h2><div class="settingRow"><div><b>上課前提醒</b><small>開始前 10 分鐘通知</small></div><button class="switch on" data-setting="classReminder" aria-label="切換上課提醒"></button></div><div class="settingRow"><div><b>作業截止提醒</b><small>截止前一天晚上 8 點</small></div><button class="switch on" data-setting="taskReminder" aria-label="切換作業提醒"></button></div></section>
+          <section class="settingsGroup dataGroup"><h2>資料</h2><button id="exportData" class="softButton">匯出 JSON</button><label class="softButton importButton">匯入<input type="file" id="importData" accept="application/json"></label><button id="shareData" class="softButton">分享課表連結</button><button id="toLogin" type="button" class="softButton">從北商校務系統匯入課表</button><label>學期名稱<input id="sTerm"></label><label>第 1 週的星期一<input id="sStart" type="date"></label><button id="reset" class="ghost danger">還原範例資料</button></section>
+        </div>
       </div>
     </section>
 

@@ -37,9 +37,13 @@ const DEFAULTS = {
     { id: 'c10', name: '網頁設計', room: '電腦教室', teacher: '王老師', day: 5, s: '14:20', e: '16:10', type: 'lab', credits: 3 }
   ],
   tasks: [
-    { id: 't1', title: '資料結構 作業 4', course: '資料結構', due: 5, done: false },
-    { id: 't2', title: '網頁設計 期中草稿', course: '網頁設計', due: 5, done: false },
-    { id: 't3', title: '微積分 小考', course: '微積分', due: 4, done: false }
+    { id: 't1', title: '期中專題：個人網站草稿', course: '網頁設計', due: 6, dueDate:'2026-11-07', kind:'作業', done: false },
+    { id: 't2', title: '資料結構 作業 4：Linked List', course: '資料結構', due: 6, dueDate:'2026-11-07', kind:'作業', done: false },
+    { id: 't3', title: '英文 單字小考 Unit 6', course: '英文（二）', due: 2, dueDate:'2026-11-10', kind:'小考', done: false },
+    { id: 't4', title: 'CSS Flexbox 練習', course: '網頁設計', due: 6, dueDate:'2026-11-14', kind:'作業', done: false },
+    { id: 't5', title: '微積分 期中考', course: '微積分', due: 3, dueDate:'2026-11-18', kind:'考試', done: false },
+    { id: 't6', title: '心理學 課堂心得', course: '通識：心理學', due: 5, dueDate:'2026-11-20', kind:'作業', done: false },
+    { id: 't7', title: 'HTML 表單練習', course: '網頁設計', due: 6, dueDate:'2026-10-31', kind:'作業', done: true }
   ]
 };
 let S = load();
@@ -148,7 +152,7 @@ function tickHero() {
 
 /* ========== 作業 ========== */
 function renderTasks() {
-  const list = [...S.tasks].sort((a, b) => a.done - b.done || a.due - b.due);
+  const list = [...S.tasks].sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || '') || a.due - b.due);
   $('#taskList').innerHTML = list.map(t => `<li class="${t.done ? 'done' : ''}">
     <input type="checkbox" data-task="${t.id}" id="k${t.id}" ${t.done ? 'checked' : ''}>
     <label for="k${t.id}" class="tx">${esc(t.title)}<small>${esc(t.course)}</small></label>
@@ -158,6 +162,20 @@ function renderTasks() {
   const n = undone().length, b = $('#badge'); b.hidden = !n; b.textContent = n;
   const names = [...new Set(S.courses.map(c => c.name))];
   $('#tCourse').innerHTML = names.map(n => `<option>${esc(n)}</option>`).join('');
+  const courseFilter = $('#taskCourseFilter');
+  if (courseFilter) {
+    const selected = courseFilter.value || 'all';
+    courseFilter.innerHTML = '<option value="all">所有課程</option>' + names.map(n => `<option>${esc(n)}</option>`).join('');
+    courseFilter.value = names.includes(selected) ? selected : 'all';
+    const pending = S.tasks.filter(t => !t.done), today = new Date(); today.setHours(0,0,0,0);
+    const within = pending.filter(t => t.dueDate && (new Date(t.dueDate+'T00:00') - today) / 86400000 <= 14 && new Date(t.dueDate+'T00:00') >= today).length;
+    $('#taskStats').innerHTML = `<div class="stat red"><strong>${within}</strong><span>這週要交</span></div><div class="stat amber"><strong>${pending.filter(t => ['考試','小考'].includes(t.kind)).length}</strong><span>兩週內考試</span></div><div class="stat"><strong>${pending.length}</strong><span>未完成</span></div><div class="stat green"><strong>${S.tasks.filter(t=>t.done).length}</strong><span>本學期已完成</span></div>`;
+    const filter = document.querySelector('.taskFilters .on')?.dataset.filter || 'all', showDone = $('#showDone')?.checked !== false;
+    const filtered = list.filter(t => (showDone || !t.done) && (filter === 'all' || (filter === '考試' ? ['考試','小考'].includes(t.kind) : t.kind === filter)) && (courseFilter.value === 'all' || t.course === courseFilter.value));
+    const groups = new Map();
+    filtered.forEach(t => { const date = t.dueDate || ''; const key = t.done ? '已完成' : date && date < new Date().toISOString().slice(0,10) ? '逾期' : date && (new Date(date+'T00:00')-new Date(new Date().toDateString()))/86400000 <= 2 ? '這週' : '之後'; if(!groups.has(key))groups.set(key,[]);groups.get(key).push(t); });
+    $('#taskGroups').innerHTML = [...groups].map(([g,items])=>`<section class="taskGroup"><h2>${g}</h2><div class="taskRows">${items.map(t=>{const date=t.dueDate?new Date(t.dueDate+'T00:00'):null,remain=date?Math.ceil((date-new Date(new Date().toDateString()))/86400000):null;return `<article class="taskRow ${t.done?'done':''}"><input type="checkbox" data-task="${t.id}" ${t.done?'checked':''} aria-label="標記完成"><div class="taskInfo"><b>${esc(t.title)}</b><small><i class="courseTag">${esc(t.course)}</i><span class="kindTag ${['考試','小考'].includes(t.kind)?'exam':''}">${esc(t.kind||'作業')}</span><span>·</span><span>${date?`${date.getMonth()+1}/${date.getDate()}`:`週${DAYS[t.due]}`}</span></small></div><span class="taskRemain ${remain!==null&&remain<=2&&!t.done?'urgent':''}">${t.done?'已完成':remain!==null?remain<0?`逾期 ${-remain} 天`:remain===0?'今天':`${remain} 天`:`週${DAYS[t.due]}`}</span></article>`}).join('')}</div></section>`).join('') || '<p class="empty">沒有符合條件的項目。</p>';
+  }
 }
 
 /* ========== 課程詳細 ========== */
@@ -375,13 +393,44 @@ $('#courseForm').onsubmit = e => {
 
 $('#taskForm').onsubmit = e => {
   e.preventDefault();
-  S.tasks.push({ id: 't' + Date.now(), title: $('#tTitle').value.trim(), course: $('#tCourse').value, due: +$('#tDue').value, done: false });
+  S.tasks.push({ id: 't' + Date.now(), title: $('#tTitle').value.trim(), course: $('#tCourse').value, due: +$('#tDue').value, kind:$('#tKind').value, done: false });
   $('#tTitle').value = ''; save(); renderAll();
 };
 
 $('#sTerm').oninput = e => { S.term = e.target.value; save(); renderFoot(); };
 $('#sStart').onchange = e => { if (e.target.value) { S.start = e.target.value; save(); renderAll(); } };
 $('#reset').onclick = () => { if (confirm('要還原成範例資料嗎？你新增的內容會被清除。')) { S = structuredClone(DEFAULTS); save(); renderAll(); } };
+$('#taskAdd').onclick = () => { $('#taskForm').classList.toggle('open'); if ($('#taskForm').classList.contains('open')) $('#tTitle').focus(); };
+document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('on',x===b));renderTasks()});
+$('#taskCourseFilter').onchange=renderTasks; $('#showDone').onchange=renderTasks;
+const PERIOD_DATA = [["08:10","09:00"],["09:10","10:00"],["10:10","11:00"],["11:10","12:00"],["13:20","14:10"],["14:20","15:10"],["15:20","16:10"],["16:20","17:10"]];
+function renderPeriods(){ $('#periodRows').innerHTML=PERIOD_DATA.map((p,i)=>`<div class="periodRow"><b>第 ${i+1} 節</b><input type="time" value="${p[0]}" aria-label="第 ${i+1} 節開始"><input type="time" value="${p[1]}" aria-label="第 ${i+1} 節結束"></div>`).join(''); }
+renderPeriods();
+$('#addPeriod').onclick=()=>{const n=PERIOD_DATA.length+1;PERIOD_DATA.push(['17:20','18:10']);renderPeriods();$('#addPeriod').textContent=`＋ 加第 ${n+1} 節（晚上）`;};
+document.querySelectorAll('.segmented').forEach(group=>group.onclick=e=>{const b=e.target.closest('button');if(b){group.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b));}});
+const themeButton = document.querySelector('.switch[data-setting="dark"]');
+const themePrefKey = 'schedule-theme';
+function applyTheme(mode) {
+  const dark = mode === 'dark' || (mode === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  themeButton?.classList.toggle('on', dark);
+  themeButton?.setAttribute('aria-pressed', String(dark));
+}
+const savedTheme = localStorage.getItem(themePrefKey) || 'system';
+applyTheme(savedTheme);
+themeButton?.addEventListener('click', () => {
+  const currentDark = document.documentElement.dataset.theme === 'dark';
+  const next = currentDark ? 'light' : 'dark';
+  localStorage.setItem(themePrefKey, next);
+  applyTheme(next);
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => {
+  if ((localStorage.getItem(themePrefKey) || 'system') === 'system') applyTheme('system');
+});
+document.querySelectorAll('.switch:not([data-setting="dark"])').forEach(b=>b.onclick=()=>{b.classList.toggle('on');b.setAttribute('aria-pressed',String(b.classList.contains('on')));});
+$('#exportData').onclick=()=>{const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='schedule.json';a.click();URL.revokeObjectURL(a.href);};
+$('#importData').onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text());if(!d.courses||!Array.isArray(d.tasks))throw 0;S={...structuredClone(DEFAULTS),...d};save();renderAll();alert('匯入完成');}catch{alert('檔案格式不正確，請選擇課表 JSON。')}e.target.value='';};
+$('#shareData').onclick=async()=>{const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(S))));const link=location.href.split('#')[0]+'#share='+encoded;try{await navigator.clipboard.writeText(link);alert('課表分享連結已複製');}catch{prompt('複製此分享連結',link)}};
 
 /* ========== 頁面切換 ========== */
 function show(view) {
