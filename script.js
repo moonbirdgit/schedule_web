@@ -16,6 +16,21 @@ const mondayOf = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return ad
 const START = 480, END = 1050, SPAN = END - START;        // 08:00 – 17:30
 const LUNCH = [730, 800];                                  // 午休 12:10 – 13:20
 const PERIODS = [[1, 490], [2, 550], [3, 610], [4, 670], [5, 800], [6, 860], [7, 920], [8, 980]];
+// 每節起迄（索引 1–8 = 第 1–8 節）
+const PT = [null, ['08:10','09:00'], ['09:10','10:00'], ['10:10','11:00'], ['11:10','12:00'],
+  ['13:20','14:10'], ['14:20','15:10'], ['15:20','16:10'], ['16:20','17:10']];
+const KINDS = { hw: '作業', exam: '考試' }; // 舊資料的代碼
+// 作業種類統一用中文（作業／考試／小考），舊的 hw / exam 也認得
+const kindOf = t => KINDS[t.kind] || t.kind || '作業';
+const isExam = t => ['考試', '小考'].includes(kindOf(t));
+const isoDate = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+// 把時間換成「第 a-b 節」；對不上節次就直接顯示時間
+function periodLabel(s, e) {
+  const a = PT.findIndex(p => p && p[0] === s), b = PT.findIndex(p => p && p[1] === e);
+  if (a > 0 && b >= a) return a === b ? `第 ${a} 節` : `第 ${a}-${b} 節`;
+  return `${s}–${e}`;
+}
+const dueDate = w => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + ((w - d.getDay() + 7) % 7)); return d; };
 const pct = m => ((m - START) / SPAN * 100) + '%';
 
 /* ========== 資料 ========== */
@@ -24,17 +39,18 @@ const DEFAULTS = {
   term: '115 學年 第 1 學期',
   start: '2026-09-07',
   notes: {},
+  absent: {},
   courses: [
     { id: 'c1', name: '計算機概論', room: 'A101', teacher: '陳老師', day: 1, s: '08:10', e: '10:00', type: 'req', credits: 3 },
     { id: 'c2', name: '英文（二）', room: 'L203', teacher: 'Smith', day: 1, s: '13:20', e: '15:10', type: 'elec', credits: 2 },
     { id: 'c3', name: '微積分', room: 'S301', teacher: '林老師', day: 2, s: '09:10', e: '12:00', type: 'req', credits: 4 },
-    { id: 'c4', name: '網頁設計', room: '電腦教室', teacher: '王老師', day: 2, s: '14:20', e: '16:10', type: 'lab', credits: 3 },
+    { id: 'c4', name: '網頁設計', room: '電腦教室', teacher: '王老師', day: 2, s: '14:20', e: '16:10', type: 'lab', credits: 3, email: 'wang@school.edu.tw', grading: '作業 40% · 期中 30% · 期末 30%', absLimit: 3 },
     { id: 'c5', name: '資料結構', room: 'A205', teacher: '張老師', day: 3, s: '08:10', e: '11:00', type: 'req', credits: 3 },
     { id: 'c6', name: '體育', room: '體育館', teacher: '', day: 3, s: '15:20', e: '17:10', type: 'pe', credits: 1 },
     { id: 'c7', name: '微積分', room: 'S301', teacher: '林老師', day: 4, s: '09:10', e: '11:00', type: 'req', credits: 4 },
     { id: 'c8', name: '通識：心理學', room: 'G102', teacher: '黃老師', day: 4, s: '13:20', e: '15:10', type: 'gen', credits: 2 },
     { id: 'c9', name: '專題討論', room: '研究室', teacher: '李老師', day: 5, s: '10:10', e: '12:00', type: 'elec', credits: 3 },
-    { id: 'c10', name: '網頁設計', room: '電腦教室', teacher: '王老師', day: 5, s: '14:20', e: '16:10', type: 'lab', credits: 3 }
+    { id: 'c10', name: '網頁設計', room: '電腦教室', teacher: '王老師', day: 5, s: '14:20', e: '16:10', type: 'lab', credits: 3, email: 'wang@school.edu.tw', grading: '作業 40% · 期中 30% · 期末 30%', absLimit: 3 }
   ],
   tasks: [
     { id: 't1', title: '期中專題：個人網站草稿', course: '網頁設計', due: 6, dueDate:'2026-11-07', kind:'作業', done: false },
@@ -48,7 +64,7 @@ const DEFAULTS = {
 };
 let S = load();
 function load() {
-  try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.courses) return d; } catch (e) { /* 忽略 */ }
+  try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.courses) { d.notes ||= {}; d.absent ||= {}; return d; } } catch (e) { /* 忽略 */ }
   return structuredClone(DEFAULTS);
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* 忽略 */ } }
@@ -155,7 +171,7 @@ function renderTasks() {
   const list = [...S.tasks].sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || '') || a.due - b.due);
   $('#taskList').innerHTML = list.map(t => `<li class="${t.done ? 'done' : ''}">
     <input type="checkbox" data-task="${t.id}" id="k${t.id}" ${t.done ? 'checked' : ''}>
-    <label for="k${t.id}" class="tx">${esc(t.title)}<small>${esc(t.course)}</small></label>
+    <label for="k${t.id}" class="tx">${esc(t.title)}<small>${esc(t.course)} · ${kindOf(t)}</small></label>
     <span class="due">週${DAYS[t.due]}</span>
     <button class="x" style="position:static" data-deltask="${t.id}" aria-label="刪除">✕</button></li>`).join('')
     || '<li class="empty">還沒有作業或考試。</li>';
@@ -181,47 +197,100 @@ function renderTasks() {
 /* ========== 課程詳細 ========== */
 function openDetail(id) {
   const c = S.courses.find(x => x.id === id); if (!c) return;
-  const same = S.courses.filter(x => x.name === c.name).sort((a, b) => a.day - b.day);
-  const tasks = S.tasks.filter(t => t.course === c.name);
+  const same = S.courses.filter(x => x.name === c.name).sort((a, b) => a.day - b.day || byTime(a, b));
+  const tasks = S.tasks.filter(t => t.course === c.name).sort((a, b) => a.done - b.done || a.due - b.due);
+  const doneN = tasks.filter(t => t.done).length, pctDone = tasks.length ? Math.round(doneN / tasks.length * 100) : 0;
+  const rooms = [...new Set(same.map(x => x.room).filter(Boolean))];
+  const limit = c.absLimit || 3, abs = S.absent[c.name] || 0;
   const nx = nextOcc(c), mins = Math.round((nx - new Date()) / 6e4);
   const left = mins < 60 ? `${mins} 分鐘` : mins < 1440 ? `${Math.floor(mins / 60)} 小時 ${mins % 60} 分` : `${Math.floor(mins / 1440)} 天`;
   const d = $('#detail');
+  const keep = d.querySelector('.db') ? d.scrollTop : 0;
   d.className = 'sheet ' + typeOf(c);
   d.style.cssText = colorVar(c);
   d.dataset.id = id;
+  const dayOpts = [1, 2, 3, 4, 5].map(i => `<option value="${i}"${i === 5 ? ' selected' : ''}>週${DAYS[i]}</option>`).join('');
   d.innerHTML = `
-    <div class="dh"><button class="x" data-close aria-label="關閉">✕</button>
-      <span class="tag">${TYPES[c.type]}</span><h2>${esc(c.name)}</h2><p>週${DAYS[c.day]} · ${c.s}–${c.e}</p></div>
-    <div class="db">
-      <div class="acts">
-        <button class="ghost" data-edit="${id}">編輯</button>
-        <button class="ghost danger" data-delcourse="${id}">刪除</button>
+    <div class="dh">
+      <div class="dtop">
+        <button class="back" data-close aria-label="返回">‹</button>
+        <span class="dlabel">課程詳情</span>
+        <div class="acts">
+          <button class="ghost" data-edit="${id}">編輯</button>
+          <button class="ghost danger" data-delcourse="${id}">刪除</button>
+        </div>
+        <button class="x" data-close aria-label="關閉">✕</button>
       </div>
-      <dl>
-        <dt>下次上課</dt><dd>${rel(nx)}（還有 ${left}）</dd>
-        <dt>每週上課</dt><dd>${same.map(x => `週${DAYS[x.day]} ${x.s}–${x.e}`).join('、')}</dd>
-        <dt>課程代碼</dt><dd>${esc(c.code) || '—'}</dd>
-        <dt>地點</dt><dd>${esc(c.room) || '—'}</dd>
-        <dt>教師</dt><dd>${esc(c.teacher) || '—'}</dd>
-        <dt>學分</dt><dd>${c.credits || '—'}</dd>
-      </dl>
-      <h3>作業與考試</h3>
-      ${tasks.length ? `<ul class="tasks">${tasks.map(t => `<li class="${t.done ? 'done' : ''}"><input type="checkbox" data-task="${t.id}" id="d${t.id}" ${t.done ? 'checked' : ''}><label for="d${t.id}" class="tx">${esc(t.title)}</label><span class="due">週${DAYS[t.due]}</span></li>`).join('')}</ul>` : '<p class="empty" style="padding:0">這堂課沒有待辦事項。</p>'}
-      <h3>課堂筆記</h3>
-      <textarea id="note" placeholder="例如：記得帶運動服、期中範圍…">${esc(S.notes[c.name] || '')}</textarea>
+      <div class="dt"><span class="dbar"></span>
+        <div><p class="crumb">課程表 › 課程詳情</p><h2>${esc(c.name)}</h2>
+          <p class="sub">${TYPES[c.type]} · ${c.credits || 0} 學分${c.teacher ? ' · ' + esc(c.teacher) : ''}</p></div></div>
+    </div>
+    <div class="db">
+      <div class="dcol">
+        <section>
+          <h3>作業與考試</h3>
+          ${tasks.length ? `<ul class="tasks">${tasks.map(t => `<li class="${t.done ? 'done' : ''}"><input type="checkbox" data-task="${t.id}" id="d${t.id}" ${t.done ? 'checked' : ''}>
+            <label for="d${t.id}" class="tx">${esc(t.title)}</label><span class="kind ${isExam(t) ? 'exam' : ''}">${kindOf(t)}</span>
+            <span class="due">${t.dueDate ? md(new Date(t.dueDate + 'T00:00')) : md(dueDate(t.due))}</span></li>`).join('')}</ul>` : '<p class="empty" style="padding:0 0 6px">這堂課沒有待辦事項。</p>'}
+          <button type="button" class="link" data-addtask>＋ 新增作業或考試</button>
+          <form class="dtForm inline" hidden>
+            <input name="title" placeholder="例如：期中考" required aria-label="標題">
+            <select name="kind" aria-label="種類"><option>作業</option><option>考試</option><option>小考</option></select>
+            <select name="due" aria-label="截止日">${dayOpts}</select>
+            <button class="primary">新增</button>
+          </form>
+        </section>
+        <section>
+          <h3>課堂筆記</h3>
+          <textarea id="note" placeholder="例如：記得帶運動服、期中範圍…">${esc(S.notes[c.name] || '')}</textarea>
+        </section>
+      </div>
+      <div class="dcol">
+        <section>
+          <h3>上課時間</h3>
+          <ul class="when">${same.map(x => `<li${x.id === id ? ' class="cur"' : ''}><b>週${DAYS[x.day]}</b><span>${periodLabel(x.s, x.e)}</span><time>${x.s}–${x.e}</time></li>`).join('')}</ul>
+          <p class="next">下次上課：${rel(nx)}（還有 ${left}）</p>
+        </section>
+        <section>
+          <h3>資料</h3>
+          <dl>
+            <dt>教室</dt><dd>${rooms.map(esc).join('、') || '—'}</dd>
+            <dt>老師信箱</dt><dd>${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '—'}</dd>
+            <dt>評分</dt><dd>${esc(c.grading) || '—'}</dd>
+            <dt>課程代碼</dt><dd>${esc(c.code) || '—'}</dd>
+            <dt>缺課上限</dt><dd>${limit} 次</dd>
+          </dl>
+        </section>
+        <section class="stats">
+          <div class="stat${abs >= limit ? ' warn' : ''}"><b>${abs}<span>/${limit}</span></b><small>缺課次數</small>
+            <div class="step"><button type="button" class="ghost" data-abs="-1" aria-label="減少缺課">−</button><button type="button" class="ghost" data-abs="1" aria-label="增加缺課">＋</button></div></div>
+          <div class="stat"><b>${pctDone}<span>%</span></b><small>作業完成度（${doneN}/${tasks.length}）</small></div>
+        </section>
+      </div>
     </div>`;
   if (!d.open) d.showModal();
+  d.scrollTop = keep;
 }
 
 /* ========== 新增／編輯課程 ========== */
 let formColor = ''; // 表單目前選的顏色（空字串＝依類別）
 
+// k: 0 = 開始時間、1 = 結束時間；對不上節次的舊資料會多一個「自訂」選項保留原時間
+function periodOpts(val, k) {
+  let h = PT.slice(1).map((p, i) => `<option value="${p[k]}"${p[k] === val ? ' selected' : ''}>第 ${i + 1} 節</option>`).join('');
+  if (val && !PT.slice(1).some(p => p[k] === val)) h += `<option value="${val}" selected>${val}</option>`;
+  return h;
+}
 function slotRow(s) {
   return `<div class="slot">
-    <select class="sDay" aria-label="星期">${[1, 2, 3, 4, 5].map(i => `<option value="${i}"${i === s.day ? ' selected' : ''}>週${DAYS[i]}</option>`).join('')}</select>
-    <input type="time" class="sS" step="300" value="${s.s}" required aria-label="開始時間">
-    <input type="time" class="sE" step="300" value="${s.e}" required aria-label="結束時間">
-    <button type="button" class="rm" data-rmslot aria-label="移除這個時段">✕</button></div>`;
+    <div class="srow">
+      <select class="sDay" aria-label="星期">${[1, 2, 3, 4, 5].map(i => `<option value="${i}"${i === s.day ? ' selected' : ''}>週${DAYS[i]}</option>`).join('')}</select>
+      <select class="sS" aria-label="開始節次">${periodOpts(s.s, 0)}</select>
+      <select class="sE" aria-label="結束節次">${periodOpts(s.e, 1)}</select>
+      <button type="button" class="rm" data-rmslot aria-label="移除這個時段">✕</button>
+      <input class="sRoom" placeholder="教室" value="${esc(s.room || '')}" aria-label="教室">
+    </div>
+    <p class="swarn" hidden></p></div>`;
 }
 
 function renderSwatches() {
@@ -230,14 +299,36 @@ function renderSwatches() {
       aria-label="${c ? '顏色 ' + c : '依類別自動配色'}" aria-pressed="${c === formColor}">${c ? '' : '自動'}</button>`).join('');
 }
 
+const readSlots = () => $$('.slot').map(r => ({ day: +$('.sDay', r).value, s: $('.sS', r).value, e: $('.sE', r).value, room: $('.sRoom', r).value.trim() }));
+
+// 與其他課程撞時段 → 只提醒，不擋儲存。回傳每個時段的訊息陣列
+function conflictsOf(slots, orig) {
+  return slots.map(a => {
+    if (toMin(a.e) <= toMin(a.s)) return { bad: true, msg: '結束節次要晚於開始節次' };
+    const o = S.courses.find(c => c.name !== orig && clash(a, c));
+    return o ? { msg: `和「${o.name}」${periodLabel(o.s, o.e)}衝突，仍要儲存嗎？` } : null;
+  });
+}
+
 function renderPrev() {
   const name = $('#fName').value.trim() || '課程名稱';
-  const place = [$('#fRoom').value.trim(), $('#fTeacher').value.trim()].filter(Boolean).join(' · ');
-  const slots = $$('.slot').map(r => `週${DAYS[+$('.sDay', r).value]} ${$('.sS', r).value}–${$('.sE', r).value}`).join('、');
+  const slots = readSlots();
+  const rooms = [...new Set(slots.map(x => x.room).filter(Boolean))].join('、');
+  const place = [rooms, $('#fTeacher').value.trim()].filter(Boolean).join(' · ');
   const p = $('#fPrev');
   p.className = 'prev t-' + $('#fType').value;
   p.style.cssText = formColor ? `--c:${formColor}` : '';
-  p.innerHTML = `<b>${esc(name)}</b>${place ? `<small>${esc(place)}</small>` : ''}<small>${esc(slots)}</small>`;
+  p.innerHTML = `<b>${esc(name)}</b>${place ? `<small>${esc(place)}</small>` : ''}` +
+    slots.map(x => `<small>週${DAYS[x.day]} ${x.s}–${x.e}</small>`).join('');
+  const days = [...new Set(slots.map(x => '週' + DAYS[x.day]))].join('、');
+  const per = [...new Set(slots.map(x => periodLabel(x.s, x.e)))].join('、');
+  $('#fSum').innerHTML = `每週 ${slots.length} 次 · ${days}<br>${per} · 共 ${Math.max(0, +$('#fCredits').value || 0)} 學分`;
+  // 每個時段下方的衝突提醒
+  const cf = conflictsOf(slots, $('#fOrig').value);
+  $$('.slot').forEach((r, i) => {
+    const w = $('.swarn', r), x = cf[i];
+    w.hidden = !x; w.textContent = x ? '⚠ ' + x.msg : ''; w.classList.toggle('bad', !!x?.bad);
+  });
 }
 
 // name 有值＝編輯該門課；否則是新增（day / start 是預設時段）
@@ -253,30 +344,34 @@ function openForm(day = 1, start = '09:10', name = null) {
   $('#fName').value = c ? c.name : '';
   $('#fCode').value = c?.code || '';
   $('#fCredits').value = c?.credits ?? 0;
-  $('#fRoom').value = c?.room || '';
   $('#fTeacher').value = c?.teacher || '';
+  $('#fEmail').value = c?.email || '';
+  $('#fGrading').value = c?.grading || '';
+  $('#fAbs').value = c?.absLimit || 3;
+  $('#fMore').open = !!(c && (c.code || c.email || c.grading));
   $('#fType').value = c ? c.type : 'req';
   $('#fNote').value = c ? (S.notes[c.name] || '') : '';
   formColor = COLORS.includes(c?.color) ? c.color : '';
 
-  $('#fSlots').innerHTML = (group.length ? group : [{ day, s: start, e: fmt(Math.min(toMin(start) + 110, END)) }]).map(slotRow).join('');
+  const snap = t => PT.slice(1).find(p => p[0] >= t)?.[0] || t; // 點到的時間對齊到最近的節次
+  const s0 = snap(start), i0 = PT.findIndex(p => p && p[0] === s0);
+  const def = { day, s: s0, e: PT[Math.min(8, i0 + 1)]?.[1] || fmt(Math.min(toMin(start) + 110, END)), room: '' };
+  $('#fSlots').innerHTML = (group.length ? group : [def]).map(slotRow).join('');
   renderSwatches();
   renderPrev();
   $('#form').showModal();
   $('#fName').focus();
 }
 
-// 回傳錯誤訊息；空字串代表通過
+// 回傳錯誤訊息；空字串代表通過（與其他課衝突只提醒，見 conflictsOf）
 function checkForm(orig, name, slots) {
   if (!name) return '請輸入課程名稱';
   if (name !== orig && S.courses.some(c => c.name === name)) return `已經有「${name}」這門課了，請從課表點進去編輯，或換個名稱`;
   for (let i = 0; i < slots.length; i++) {
     const a = slots[i];
-    if (!a.s || !a.e) return `第 ${i + 1} 個時段請填寫開始與結束時間`;
-    if (toMin(a.e) <= toMin(a.s)) return `第 ${i + 1} 個時段：結束時間要晚於開始時間`;
+    if (!a.s || !a.e) return `第 ${i + 1} 個時段請選擇開始與結束節次`;
+    if (toMin(a.e) <= toMin(a.s)) return `第 ${i + 1} 個時段：結束節次要晚於開始節次`;
     for (let j = i + 1; j < slots.length; j++) if (clash(a, slots[j])) return `第 ${i + 1} 與第 ${j + 1} 個時段時間重疊`;
-    const o = S.courses.find(c => c.name !== orig && clash(a, c));
-    if (o) return `第 ${i + 1} 個時段與「${o.name}」衝突（週${DAYS[o.day]} ${o.s}–${o.e}）`;
   }
   return '';
 }
@@ -293,7 +388,7 @@ document.addEventListener('click', e => {
   if (t.closest('[data-addslot]')) {
     const last = $$('.slot').at(-1);
     const row = last
-      ? { day: Math.min(5, +$('.sDay', last).value + 1), s: $('.sS', last).value, e: $('.sE', last).value }
+      ? { day: Math.min(5, +$('.sDay', last).value + 1), s: $('.sS', last).value, e: $('.sE', last).value, room: $('.sRoom', last).value }
       : { day: 1, s: '09:10', e: '11:00' };
     $('#fSlots').insertAdjacentHTML('beforeend', slotRow(row));
     renderPrev(); return;
@@ -318,11 +413,20 @@ document.addEventListener('click', e => {
     if (confirm(`確定要刪除「${c.name}」嗎？\n會一併移除 ${n} 個上課時段${k ? `、${k} 項作業與考試` : ''}和課堂筆記。`)) {
       S.courses = S.courses.filter(x => x.name !== c.name);
       S.tasks = S.tasks.filter(x => x.course !== c.name);
-      delete S.notes[c.name];
+      delete S.notes[c.name]; delete S.absent[c.name];
       save(); $('#detail').close(); renderAll();
     }
     return;
   }
+
+  const ab = t.closest('[data-abs]');
+  if (ab) {
+    const c = S.courses.find(x => x.id === $('#detail').dataset.id);
+    S.absent[c.name] = Math.max(0, (S.absent[c.name] || 0) + +ab.dataset.abs);
+    save(); openDetail(c.id); return;
+  }
+  const at = t.closest('[data-addtask]');
+  if (at) { const f = at.parentElement.querySelector('.dtForm'); f.hidden = !f.hidden; if (!f.hidden) f.elements.title.focus(); return; }
 
   if (t.closest('[data-close]')) { t.closest('dialog').close(); return; }
   if (t.matches('dialog')) { // 只有點到視窗外的遮罩才關閉，避免點到表單邊緣誤關
@@ -367,22 +471,27 @@ $('#addBtn').onclick = () => openForm(new Date().getDay() >= 1 && new Date().get
 $('#courseForm').onsubmit = e => {
   e.preventDefault();
   const orig = $('#fOrig').value, name = $('#fName').value.trim();
-  const slots = $$('.slot').map(r => ({ day: +$('.sDay', r).value, s: $('.sS', r).value, e: $('.sE', r).value }))
-    .sort((a, b) => a.day - b.day || toMin(a.s || '00:00') - toMin(b.s || '00:00'));
+  const slots = readSlots().sort((a, b) => a.day - b.day || toMin(a.s || '00:00') - toMin(b.s || '00:00'));
   const err = checkForm(orig, name, slots);
   if (err) { $('#fErr').textContent = err; return; }
 
+  const hits = conflictsOf(slots, orig).map((x, i) => x && `第 ${i + 1} 個時段（週${DAYS[slots[i].day]} ${periodLabel(slots[i].s, slots[i].e)}）：${x.msg.replace('，仍要儲存嗎？', '')}`).filter(Boolean);
+  if (hits.length && !confirm(hits.join('\n') + '\n\n仍要儲存嗎？')) return;
+
   const old = S.courses.filter(c => c.name === orig);
   const base = {
-    name, code: $('#fCode').value.trim(), room: $('#fRoom').value.trim(), teacher: $('#fTeacher').value.trim(),
+    name, code: $('#fCode').value.trim(), teacher: $('#fTeacher').value.trim(),
+    email: $('#fEmail').value.trim(), grading: $('#fGrading').value.trim(),
+    absLimit: Math.max(1, +$('#fAbs').value || 3),
     type: $('#fType').value, credits: Math.max(0, +$('#fCredits').value || 0), color: formColor
   };
   S.courses = S.courses.filter(c => c.name !== orig);
   slots.forEach((s, i) => S.courses.push({ id: old[i]?.id || 'c' + Date.now() + '_' + i, ...base, ...s }));
 
-  if (orig && orig !== name) { // 改課名：作業與筆記跟著搬過去
+  if (orig && orig !== name) { // 改課名：作業、筆記、缺課紀錄跟著搬過去
     S.tasks.forEach(t => { if (t.course === orig) t.course = name; });
     delete S.notes[orig];
+    if (S.absent[orig] != null) { S.absent[name] = S.absent[orig]; delete S.absent[orig]; }
   }
   const note = $('#fNote').value;
   if (note.trim()) S.notes[name] = note; else delete S.notes[name];
@@ -390,6 +499,15 @@ $('#courseForm').onsubmit = e => {
   save(); $('#form').close(); renderAll();
   if (orig) openDetail(S.courses.find(c => c.name === name).id); // 編輯完回到詳細頁
 };
+
+// 詳細頁內直接新增作業／考試
+document.addEventListener('submit', e => {
+  const f = e.target; if (!f.matches('.dtForm')) return;
+  e.preventDefault();
+  const c = S.courses.find(x => x.id === $('#detail').dataset.id); if (!c) return;
+  S.tasks.push({ id: 't' + Date.now(), title: f.elements.title.value.trim(), course: c.name, due: +f.elements.due.value, dueDate: isoDate(dueDate(+f.elements.due.value)), kind: f.elements.kind.value, done: false });
+  save(); renderAll(); openDetail(c.id);
+});
 
 $('#taskForm').onsubmit = e => {
   e.preventDefault();

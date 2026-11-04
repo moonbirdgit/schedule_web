@@ -85,33 +85,61 @@
 <!-- 新增／編輯課程 -->
 <dialog id="form" class="modal" aria-label="課程表單">
   <form id="courseForm">
-    <h2 id="fTitle">新增課程</h2>
+    <header class="fh">
+      <p class="crumb">課程表 ›</p>
+      <h2 id="fTitle">新增課程</h2>
+    </header>
     <input type="hidden" id="fOrig">
-    <div id="fPrev" class="prev" aria-label="預覽"></div>
-    <label>課程名稱<input id="fName" required></label>
-    <div class="two">
-      <label>課程代碼<input id="fCode" placeholder="例如 CS101"></label>
-      <label>學分<input id="fCredits" type="number" min="0" max="9" step="1" value="0"></label>
+
+    <div class="fgrid">
+      <div class="fmain">
+        <div class="two">
+          <label>課程名稱<input id="fName" required placeholder="例如 網頁設計"></label>
+          <label>授課老師<input id="fTeacher" placeholder="例如 王老師"></label>
+        </div>
+        <div class="two">
+          <label>類別<select id="fType"></select></label>
+          <label>學分<input id="fCredits" type="number" min="0" max="9" step="1" value="0"></label>
+        </div>
+
+        <div>
+          <p class="lbl">上課時段 <span class="faint">一門課可以有好幾個時段</span></p>
+          <div id="fSlots" class="slots"></div>
+          <button type="button" class="link" data-addslot>＋ 再加一個時段</button>
+        </div>
+
+        <div>
+          <p class="lbl">顏色</p>
+          <div id="fColors" class="swatches"></div>
+        </div>
+
+        <details id="fMore" class="more">
+          <summary>更多資訊（代碼、信箱、評分、缺課上限）</summary>
+          <div class="morebody">
+            <div class="two">
+              <label>課程代碼<input id="fCode" placeholder="例如 CS101"></label>
+              <label>缺課上限（次）<input id="fAbs" type="number" min="1" max="20" step="1" value="3"></label>
+            </div>
+            <label>老師信箱<input id="fEmail" type="email" placeholder="teacher@school.edu.tw"></label>
+            <label>評分方式<input id="fGrading" placeholder="例如：作業 40% · 期中 30% · 期末 30%"></label>
+          </div>
+        </details>
+
+        <label>備註<textarea id="fNote" rows="3" placeholder="例如：期末要交個人網站，用 GitHub Pages 發布"></textarea></label>
+      </div>
+
+      <aside class="fside" aria-label="預覽">
+        <p class="lbl">預覽</p>
+        <div id="fPrev" class="prev" aria-live="polite"></div>
+        <p id="fSum" class="psum"></p>
+        <p class="tip">小提醒：課程名稱相同的時段會當成同一門課，作業和筆記會一起綁定。</p>
+      </aside>
     </div>
-    <div class="two">
-      <label>教室<input id="fRoom"></label>
-      <label>老師<input id="fTeacher"></label>
-    </div>
-    <label>類別<select id="fType"></select></label>
-    <div>
-      <p class="lbl">上課時段（每週重複）</p>
-      <div id="fSlots" class="slots"></div>
-      <button type="button" class="ghost" data-addslot>＋ 新增一個時段</button>
-    </div>
-    <div>
-      <p class="lbl">顏色</p>
-      <div id="fColors" class="swatches"></div>
-    </div>
-    <label>備註<textarea id="fNote" rows="3" placeholder="例如：記得帶運動服、期中範圍…"></textarea></label>
+
     <p id="fErr" class="err" role="alert"></p>
     <div class="actions">
       <button type="button" class="ghost" data-close>取消</button>
-      <button class="primary">儲存</button>
+      <button class="primary">儲存課程</button>
     </div>
   </form>
 </dialog>
