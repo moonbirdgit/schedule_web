@@ -403,7 +403,7 @@ $('#reset').onclick = () => { if (confirm('要還原成範例資料嗎？你新�
 $('#taskAdd').onclick = () => { $('#taskForm').classList.toggle('open'); if ($('#taskForm').classList.contains('open')) $('#tTitle').focus(); };
 document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('on',x===b));renderTasks()});
 $('#taskCourseFilter').onchange=renderTasks; $('#showDone').onchange=renderTasks;
-const PERIOD_DATA = [["08:10","09:00"],["09:10","10:00"],["10:10","11:00"],["11:10","12:00"],["13:20","14:10"],["14:20","15:10"],["15:20","16:10"],["16:20","17:10"]];
+const PERIOD_DATA = [["08:10","09:00"],["09:10","10:00"],["10:10","11:00"],["11:10","12:00"],["13:30","14:15"],["14:25","15:10"],["15:20","16:05"],["16:15","17:00"]];
 function renderPeriods(){ $('#periodRows').innerHTML=PERIOD_DATA.map((p,i)=>`<div class="periodRow"><b>第 ${i+1} 節</b><input type="time" value="${p[0]}" aria-label="第 ${i+1} 節開始"><input type="time" value="${p[1]}" aria-label="第 ${i+1} 節結束"></div>`).join(''); }
 renderPeriods();
 $('#addPeriod').onclick=()=>{const n=PERIOD_DATA.length+1;PERIOD_DATA.push(['17:20','18:10']);renderPeriods();$('#addPeriod').textContent=`＋ 加第 ${n+1} 節（晚上）`;};
