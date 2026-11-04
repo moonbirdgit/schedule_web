@@ -25,6 +25,7 @@ h1,h2,p{margin:0}
 .nav button{display:flex;align-items:center;gap:10px;padding:9px 12px;border:0;border-radius:8px;background:none;color:var(--mute);text-align:left}
 .nav button i{font-style:normal;width:18px;text-align:center}
 .nav button.active{background:var(--card);color:var(--pri);font-weight:600}
+.nav em[hidden]{display:none}
 .nav em{margin-left:auto;background:var(--red);color:#fff;font-style:normal;font-size:11px;font-weight:700;min-width:20px;height:20px;border-radius:10px;display:grid;place-items:center;padding:0 5px}
 .foot{margin-top:auto;color:var(--mute);font-size:12px;border-top:1px solid var(--line);padding-top:12px}
 main{background:var(--card);padding:24px 28px;min-width:0}
@@ -43,7 +44,11 @@ main{background:var(--card);padding:24px 28px;min-width:0}
 .hint{color:var(--mute);font-size:12px;margin-top:12px;text-align:right}
 
 /* 週課表格 */
-.grid{display:grid;grid-template-columns:52px repeat(5,minmax(0,1fr));overflow:hidden}
+.grid{position:relative;display:grid;grid-template-columns:52px repeat(5,minmax(0,1fr));overflow:hidden}
+.emptyWeek{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:3;width:min(360px,calc(100% - 32px));text-align:center;padding:24px 22px;border-radius:14px;background:var(--card);box-shadow:0 10px 40px rgba(15,20,35,.12);display:grid;gap:6px;cursor:default}
+.emptyWeek b{font-size:18px}
+.emptyWeek p{color:var(--mute);font-size:13px}
+.emptyWeek div{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
 .gh{text-align:center;padding:8px 0;font-weight:600;border-bottom:1px solid var(--line)}
 .gh small{display:block;font-weight:400;color:var(--mute);font-size:11px}
 .gh.today,.col.today{background:color-mix(in srgb,var(--pri) 6%,var(--card))}

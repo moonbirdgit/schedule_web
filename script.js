@@ -35,37 +35,29 @@ const pct = m => ((m - START) / SPAN * 100) + '%';
 
 /* ========== 資料 ========== */
 const KEY = 'timetable-v1';
+// 第一次打開是空的課表：從北商匯入，或自己新增
 const DEFAULTS = {
   term: '115 學年 第 1 學期',
   start: '2026-09-07',
   notes: {},
   absent: {},
-  courses: [
-    { id: 'c1', name: '計算機概論', room: 'A101', teacher: '陳老師', day: 1, s: '08:10', e: '10:00', type: 'req', credits: 3 },
-    { id: 'c2', name: '英文（二）', room: 'L203', teacher: 'Smith', day: 1, s: '13:20', e: '15:10', type: 'elec', credits: 2 },
-    { id: 'c3', name: '微積分', room: 'S301', teacher: '林老師', day: 2, s: '09:10', e: '12:00', type: 'req', credits: 4 },
-    { id: 'c4', name: '網頁設計', room: '電腦教室', teacher: '王老師', day: 2, s: '14:20', e: '16:10', type: 'lab', credits: 3, email: 'wang@school.edu.tw', grading: '作業 40% · 期中 30% · 期末 30%', absLimit: 3 },
-    { id: 'c5', name: '資料結構', room: 'A205', teacher: '張老師', day: 3, s: '08:10', e: '11:00', type: 'req', credits: 3 },
-    { id: 'c6', name: '體育', room: '體育館', teacher: '', day: 3, s: '15:20', e: '17:10', type: 'pe', credits: 1 },
-    { id: 'c7', name: '微積分', room: 'S301', teacher: '林老師', day: 4, s: '09:10', e: '11:00', type: 'req', credits: 4 },
-    { id: 'c8', name: '通識：心理學', room: 'G102', teacher: '黃老師', day: 4, s: '13:20', e: '15:10', type: 'gen', credits: 2 },
-    { id: 'c9', name: '專題討論', room: '研究室', teacher: '李老師', day: 5, s: '10:10', e: '12:00', type: 'elec', credits: 3 },
-    { id: 'c10', name: '網頁設計', room: '電腦教室', teacher: '王老師', day: 5, s: '14:20', e: '16:10', type: 'lab', credits: 3, email: 'wang@school.edu.tw', grading: '作業 40% · 期中 30% · 期末 30%', absLimit: 3 }
-  ],
-  tasks: [
-    { id: 't1', title: '期中專題：個人網站草稿', course: '網頁設計', due: 6, dueDate:'2026-11-07', kind:'作業', done: false },
-    { id: 't2', title: '資料結構 作業 4：Linked List', course: '資料結構', due: 6, dueDate:'2026-11-07', kind:'作業', done: false },
-    { id: 't3', title: '英文 單字小考 Unit 6', course: '英文（二）', due: 2, dueDate:'2026-11-10', kind:'小考', done: false },
-    { id: 't4', title: 'CSS Flexbox 練習', course: '網頁設計', due: 6, dueDate:'2026-11-14', kind:'作業', done: false },
-    { id: 't5', title: '微積分 期中考', course: '微積分', due: 3, dueDate:'2026-11-18', kind:'考試', done: false },
-    { id: 't6', title: '心理學 課堂心得', course: '通識：心理學', due: 5, dueDate:'2026-11-20', kind:'作業', done: false },
-    { id: 't7', title: 'HTML 表單練習', course: '網頁設計', due: 6, dueDate:'2026-10-31', kind:'作業', done: true }
-  ]
+  courses: [],
+  tasks: []
 };
 let S = load();
 function load() {
-  try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.courses) { d.notes ||= {}; d.absent ||= {}; return d; } } catch (e) { /* 忽略 */ }
-  return structuredClone(DEFAULTS);
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY));
+    if (d && d.courses) {
+      d.notes ||= {}; d.absent ||= {};
+      // 以前的版本會預先塞範例資料（id 是 c1–c10、t1–t7）。如果完全沒動過，就清掉，換成空白課表
+      const sample = d.courses.length && d.courses.every(c => /^c\d{1,2}$/.test(c.id)) && d.tasks.every(t => /^t\d$/.test(t.id));
+      if (sample && !d.v) { d.courses = []; d.tasks = []; d.notes = {}; d.absent = {}; }
+      d.v = 2;
+      return d;
+    }
+  } catch (e) { /* 忽略 */ }
+  return { ...structuredClone(DEFAULTS), v: 2 };
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* 忽略 */ } }
 
@@ -119,6 +111,8 @@ function renderWeek() {
     if (i === todayCol && nowMin >= START && nowMin <= END) h += `<div class="now" style="top:${pct(nowMin)}"></div>`;
     h += '</div>';
   }
+  if (!S.courses.length) h += `<div class="emptyWeek"><b>課表還是空的</b><p>從學校匯入最快，或點空白格子自己新增。</p>
+    <div><button type="button" class="primary" data-goto="login">從北商匯入課表</button><button type="button" class="ghost" data-addfirst>自己新增課程</button></div></div>`;
   $('#grid').innerHTML = h;
 }
 
@@ -517,7 +511,12 @@ $('#taskForm').onsubmit = e => {
 
 $('#sTerm').oninput = e => { S.term = e.target.value; save(); renderFoot(); };
 $('#sStart').onchange = e => { if (e.target.value) { S.start = e.target.value; save(); renderAll(); } };
-$('#reset').onclick = () => { if (confirm('要還原成範例資料嗎？你新增的內容會被清除。')) { S = structuredClone(DEFAULTS); save(); renderAll(); } };
+$('#reset').onclick = () => { if (confirm('確定要清除所有課程、作業和筆記嗎？清除後無法復原。')) { S = { ...structuredClone(DEFAULTS), v: 2 }; save(); renderAll(); } };
+// 空白課表上的兩個按鈕
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-goto]')) { show(e.target.closest('[data-goto]').dataset.goto); return; }
+  if (e.target.closest('[data-addfirst]')) { e.stopPropagation(); $('#addBtn').click(); }
+}, true);
 $('#taskAdd').onclick = () => { $('#taskForm').classList.toggle('open'); if ($('#taskForm').classList.contains('open')) $('#tTitle').focus(); };
 document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('on',x===b));renderTasks()});
 $('#taskCourseFilter').onchange=renderTasks; $('#showDone').onchange=renderTasks;

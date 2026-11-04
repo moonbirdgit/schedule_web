@@ -286,7 +286,7 @@
   };
 
   /* ---------- 預覽與匯入 ---------- */
-  const isManual = c => /^c\d{10,}/.test(c.id); // 使用者自己在網站上新增的課（範例資料是 c1、c2…）
+  const isManual = c => !String(c.id).startsWith('ntub-'); // 不是從學校匯入的，就是使用者自己新增的
 
   function renderPreview() {
     const { semester, courses } = result;
