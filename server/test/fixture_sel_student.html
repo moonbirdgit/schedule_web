@@ -1,0 +1,182 @@
+<html><body><form id="form1">
+<select name="ThisYear" id="ThisYear" style="width:60px;">
+		<option value="114">114</option>
+		<option selected="selected" value="115">115</option>
+
+	</select>
+                                    </td>
+                                    <td><p style="margin:3px;">學年度第</p></td>
+                                    <td>
+                                        <select name="ThisTeam" id="ThisTeam" style="width:120px;">
+		<option selected="selected" value="1">第一學期</option>
+		<option value="2">第二學期</option>
+		<option value="3">第三學期</option>
+		<option value="4">第四學期</option>
+
+	</select>
+                                    </td>
+                                    <td><p style="margin:3px;">學期</p></td>
+                                    <td align="center">
+                                        學生
+                                        <span id="lblSTD">測試學生</span>&nbsp;個人課表&nbsp;
+                                        <input type="button" value="匯出Excel檔" class = "blue_L" onclick="SaveExcel();"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table id='bgBase' width=96% cellspacing=1 cellpadding=1 align='center' style='border:1 solid black;font-size:12px'>
+<tr bgcolor='#dcdcdc'>
+<td width='9%' align='center' height='36'>節次</td>
+<td width='13%' align='center'>一</td>
+<td width='13%' align='center'>二</td>
+<td width='13%' align='center'>三</td>
+<td width='13%' align='center'>四</td>
+<td width='13%' align='center'>五</td>
+<td width='13%' align='center'>六</td>
+<td width='13%' align='center'>日</td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第一節<br>08:10<br>09:00</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第二節<br>09:10<br>10:00</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40620A','10');">資訊網路</a><br>蒯思齊<br>電606(承曦樓)</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40620A','19');">網站應用程式設計</a><br>林俊杰<br>電708(承曦樓)</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40620A','5');">資料結構</a><br>李家生<br>藝409</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第三節<br>10:10<br>11:00</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40620A','10');">資訊網路</a><br>蒯思齊<br>電606(承曦樓)</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40620A','19');">網站應用程式設計</a><br>林俊杰<br>電708(承曦樓)</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40620A','5');">資料結構</a><br>李家生<br>藝409</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第四節<br>11:10<br>12:00</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40620A','10');">資訊網路</a><br>蒯思齊<br>電606(承曦樓)</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40620A','19');">網站應用程式設計</a><br>林俊杰<br>電708(承曦樓)</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40620A','5');">資料結構</a><br>李家生<br>藝409</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第五節<br>13:30<br>14:20</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40020A','51');">時事英文選讀</a><br>林怡安<br>承402</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','90130C','45');">健身運動(上)</a><br>孫源宏<br>重量訓練室</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40620A','7');">資料庫管理</a><br>李文毅<br>電708(承曦樓)</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第六節<br>14:25<br>15:15</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40020A','51');">時事英文選讀</a><br>林怡安<br>承402</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','90130C','45');">健身運動(上)</a><br>孫源宏<br>重量訓練室</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40620A','7');">資料庫管理</a><br>李文毅<br>電708(承曦樓)</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第七節<br>15:25<br>16:15</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40020A','50');">語言與人生</a><br>林怡安<br>承402</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40010A','17');">英文(三)</a><br>鄭巧雯<br>承406</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40620A','7');">資料庫管理</a><br>李文毅<br>電708(承曦樓)</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第八節<br>16:20<br>17:10</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40020A','50');">語言與人生</a><br>林怡安<br>承402</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'><a href="javascript:ConnectCos_Short('115','1','40010A','17');">英文(三)</a><br>鄭巧雯<br>承406</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第九節<br>17:15<br>18:05</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第十節<br><br></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第十一節<br>18:30<br>19:15</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第十二節<br>19:20<br>20:05</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第十三節<br>20:15<br>21:00</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+<tr>
+<td width='9%' align='center' bgcolor='#dcdcdc'>第十四節<br>21:05<br>21:50</td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+<td id='bgContent1' width='13%' align='center' bgcolor = '#FAF0E6'></td>
+</tr>
+</table>
+</form></body></html>

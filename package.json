@@ -1,0 +1,16 @@
+{
+  "name": "schedule_web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "個人課表：週課表、今日、作業與考試，可從北商校務系統匯入課表",
+  "scripts": {
+    "start": "node server/server.js",
+    "mock": "NTUB_MOCK=1 node server/server.js",
+    "probe": "node server/probe.js",
+    "test": "node --test server/test/parse.test.js"
+  },
+  "engines": { "node": ">=18.14" },
+  "optionalDependencies": {
+    "tesseract.js": "^5.1.1"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "accountField": "txtUserID",
+  "passwordField": "txtPassword",
+  "captchaField": "txtCheckCode",
+  "captchaImage": "ValidateCode.aspx",
+  "submitField": "btnLogin"
+}
