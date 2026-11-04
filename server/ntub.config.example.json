@@ -1,0 +1,7 @@
+{
+  "accountField": "UserID",
+  "passwordField": "PWD",
+  "captchaImage": "/HttpRequest/MakeCheckCodePIC.ashx",
+  "submitField": "loginbtn",
+  "selects": { "Type": "0" }
+}

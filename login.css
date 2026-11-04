@@ -1,0 +1,45 @@
+/* ===== 北商登入匯入（王鵬瑋） ===== */
+.lg [hidden]{display:none!important}
+.lg{display:flex;flex-wrap:wrap;gap:48px;max-width:980px;padding-top:12px}
+.lg-intro{flex:1 1 300px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.lg-intro h1{font-size:38px;line-height:1.25;letter-spacing:-.01em}
+.lg-eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--mute)}
+.lg-sub{color:var(--mute);font-size:15px;line-height:1.8;max-width:360px}
+.lg-steps{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:12px;counter-reset:s}
+.lg-steps li{display:flex;align-items:center;gap:10px;color:var(--mute);counter-increment:s}
+.lg-steps li::before{content:counter(s);width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:12px;font-variant-numeric:tabular-nums}
+.lg-steps li.on{color:var(--ink);font-weight:600}
+.lg-steps li.on::before{background:var(--pri);border-color:var(--pri);color:#fff}
+.lg-steps li.done::before{content:"✓";background:color-mix(in srgb,var(--pri) 14%,var(--card));border-color:transparent;color:var(--pri)}
+
+.lg-main{flex:1 1 340px;min-width:0;max-width:420px}
+.lg-form{display:grid;gap:14px}
+.lg-form input{height:42px}
+.lg-label{color:var(--mute);font-size:12px}
+.lg-cap{display:grid;gap:4px}
+.lg-caprow{display:flex;gap:8px;align-items:center}
+.lg-caprow img{flex:none;width:120px;height:42px;border-radius:8px;background:color-mix(in srgb,var(--mute) 12%,var(--card));object-fit:contain}
+.lg-caprow img.loading{animation:lgPulse 1s infinite alternate}
+.lg-caprow input{font-variant-numeric:tabular-nums;letter-spacing:.2em}
+.lg-caprow .ghost{flex:none;width:42px;height:42px;font-size:18px;padding:0}
+.lg-cap small{font-size:12px;color:var(--mute)}
+.lg-cap small.ok{color:var(--elec)}
+.lg-go{height:46px;font-size:15px}
+.lg-go:disabled{opacity:.6;cursor:progress}
+.lg-note{color:var(--mute);font-size:12px;line-height:1.7}
+
+.lg-preview h2{font-size:22px;margin:4px 0 12px}
+.lg-list{list-style:none;margin:0 0 12px;padding:0;max-height:360px;overflow:auto}
+.lg-list li{display:grid;grid-template-columns:40px 1fr;column-gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.lg-list b{color:var(--c)}
+.lg-list small{grid-column:2;color:var(--mute)}
+.lg-day{grid-row:span 2;color:var(--mute);font-size:12px;padding-top:2px}
+.lg-warn{font-size:12px;color:var(--gen);margin:6px 0}
+.lg-preview .actions{margin-top:14px}
+@keyframes lgPulse{to{opacity:.4}}
+
+@media (max-width:760px){
+  .lg{gap:24px}
+  .lg-intro h1{font-size:28px}
+  .lg-steps{display:none}
+}
