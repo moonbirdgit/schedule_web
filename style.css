@@ -115,12 +115,26 @@ dialog::backdrop{background:rgba(15,20,35,.4)}
 .db h3{font-size:12px;color:var(--mute);font-weight:500;margin:16px 0 6px}
 .db textarea{min-height:90px;resize:vertical}
 .db .tasks li{padding:8px 0}
-.modal{margin:auto;width:min(420px,calc(100vw - 24px));border-radius:14px;padding:22px}
+.modal{margin:auto;width:min(460px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;border-radius:14px;padding:22px}
 .modal h2{margin-bottom:12px}
 .modal form{display:grid;gap:12px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .actions{display:flex;justify-content:flex-end;gap:8px}
 .err{color:var(--red);font-size:12px;min-height:1em}
+
+/* 課程表單：時段、顏色、預覽 */
+.lbl{color:var(--mute);font-size:12px;margin-bottom:4px}
+.slots{display:grid;gap:6px;margin-bottom:8px}
+.slot{display:grid;grid-template-columns:76px 1fr 1fr 28px;gap:6px;align-items:center}
+.rm{border:0;background:none;color:var(--mute);font-size:16px;padding:0}
+.swatches{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sw{width:28px;height:28px;border-radius:50%;border:2px solid var(--card);padding:0;box-shadow:0 0 0 1px var(--line)}
+.sw[data-color=""]{width:auto;border-radius:14px;padding:0 10px;font-size:11px;background:var(--card);color:var(--mute)}
+.sw.on{box-shadow:0 0 0 2px var(--pri)}
+.prev{border-left:3px solid var(--c);border-radius:8px;padding:8px 12px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--card))}
+.prev b{display:block}
+.prev small{display:block;opacity:.85}
+.acts{display:flex;gap:8px;margin-bottom:14px}
 @keyframes slideIn{from{transform:translateX(30px);opacity:0}}
 @keyframes slideUp{from{transform:translateY(30px);opacity:0}}
 

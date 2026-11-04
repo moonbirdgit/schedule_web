@@ -70,25 +70,32 @@
 <!-- 課程詳細 -->
 <dialog id="detail" class="sheet" aria-label="課程詳細"></dialog>
 
-<!-- 新增課程 -->
-<dialog id="form" class="modal" aria-label="新增課程">
+<!-- 新增／編輯課程 -->
+<dialog id="form" class="modal" aria-label="課程表單">
   <form id="courseForm">
-    <h2>新增課程</h2>
+    <h2 id="fTitle">新增課程</h2>
+    <input type="hidden" id="fOrig">
+    <div id="fPrev" class="prev" aria-label="預覽"></div>
     <label>課程名稱<input id="fName" required></label>
+    <div class="two">
+      <label>課程代碼<input id="fCode" placeholder="例如 CS101"></label>
+      <label>學分<input id="fCredits" type="number" min="0" max="9" step="1" value="0"></label>
+    </div>
     <div class="two">
       <label>教室<input id="fRoom"></label>
       <label>老師<input id="fTeacher"></label>
     </div>
-    <div class="two">
-      <label>星期
-        <select id="fDay"><option value="1">週一</option><option value="2">週二</option><option value="3">週三</option><option value="4">週四</option><option value="5">週五</option></select>
-      </label>
-      <label>類別<select id="fType"></select></label>
+    <label>類別<select id="fType"></select></label>
+    <div>
+      <p class="lbl">上課時段（每週重複）</p>
+      <div id="fSlots" class="slots"></div>
+      <button type="button" class="ghost" data-addslot>＋ 新增一個時段</button>
     </div>
-    <div class="two">
-      <label>開始<input id="fS" type="time" step="300" required></label>
-      <label>結束<input id="fE" type="time" step="300" required></label>
+    <div>
+      <p class="lbl">顏色</p>
+      <div id="fColors" class="swatches"></div>
     </div>
+    <label>備註<textarea id="fNote" rows="3" placeholder="例如：記得帶運動服、期中範圍…"></textarea></label>
     <p id="fErr" class="err" role="alert"></p>
     <div class="actions">
       <button type="button" class="ghost" data-close>取消</button>
