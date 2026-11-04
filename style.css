@@ -103,20 +103,50 @@ label{display:grid;gap:4px;color:var(--mute);font-size:12px}
 /* 詳細面板與表單 */
 dialog{border:0;padding:0;background:var(--card);color:var(--ink);box-shadow:0 10px 40px rgba(0,0,0,.25)}
 dialog::backdrop{background:rgba(15,20,35,.4)}
-.sheet{margin:0 0 0 auto;height:100vh;max-height:none;width:380px;animation:slideIn .22s ease}
-.dh{padding:20px 22px 18px;background:color-mix(in srgb,var(--c) 14%,var(--card));border-bottom:3px solid var(--c);position:relative}
-.dh h2{font-size:24px;color:var(--c)}
-.dh p{color:var(--mute)}
+.sheet{margin:auto;width:min(900px,calc(100vw - 32px));max-width:none;max-height:calc(100vh - 32px);border-radius:14px;overflow:auto;animation:slideUp .22s ease}
+.dh{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px;padding:22px 26px 18px;border-bottom:1px solid var(--line)}
+.dtop{display:contents}
+.dt{order:-1;flex:1;min-width:0;display:flex;gap:12px}
+.dbar{flex:none;width:6px;border-radius:3px;background:var(--c)}
+.dh h2{font-size:26px;line-height:1.25;overflow-wrap:anywhere}
+.crumb{color:var(--mute);font-size:12px}
+.sub{color:var(--mute)}
+.dh .acts{margin:0}
+.x{border:0;background:none;font-size:18px;color:var(--mute);padding:4px 6px}
+.back,.dlabel{display:none}
 .tag{display:inline-block;background:var(--c);color:var(--card);border-radius:5px;font-size:11px;padding:0 8px;margin-bottom:6px}
-.x{position:absolute;right:12px;top:12px;border:0;background:none;font-size:18px;color:var(--mute)}
-.db{padding:16px 22px 28px;overflow:auto;height:calc(100% - 118px)}
-.db dl{display:grid;grid-template-columns:72px 1fr;gap:10px 8px;margin:0 0 16px}
-.db dt{color:var(--mute)}.db dd{margin:0}
-.db h3{font-size:12px;color:var(--mute);font-weight:500;margin:16px 0 6px}
-.db textarea{min-height:90px;resize:vertical}
-.db .tasks li{padding:8px 0}
-.modal{margin:auto;width:min(460px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;border-radius:14px;padding:22px}
-.modal h2{margin-bottom:12px}
+.db{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:8px 32px;padding:18px 26px 28px}
+.dcol{display:grid;gap:4px;align-content:start}
+.db section{margin-bottom:14px}
+.db dl{display:grid;grid-template-columns:76px 1fr;gap:8px;margin:0}
+.db dt{color:var(--mute)}.db dd{margin:0;overflow-wrap:anywhere}
+.db a{color:var(--pri)}
+.db h3{font-size:12px;color:var(--mute);font-weight:600;margin:0 0 8px}
+.db textarea{min-height:120px;resize:vertical}
+.db .tasks li{padding:9px 0}
+.kind{font-size:10px;font-weight:700;border-radius:4px;padding:1px 6px;background:color-mix(in srgb,var(--mute) 16%,var(--card));color:var(--mute);white-space:nowrap}
+.kind.exam{background:color-mix(in srgb,var(--red) 14%,var(--card));color:var(--red)}
+.db .tasks .due{margin-left:0;min-width:34px;text-align:right}
+.db .tasks .tx{flex:1;min-width:0}
+.link{border:0;background:none;color:var(--pri);font-weight:600;padding:6px 0}
+.dtForm{margin:8px 0 0}
+.dtForm select{width:auto}
+.when{list-style:none;margin:0;padding:0}
+.when li{display:grid;grid-template-columns:40px 1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.when li.cur b{color:var(--c)}
+.when time{color:var(--mute);font-variant-numeric:tabular-nums}
+.next{color:var(--mute);font-size:12px;margin-top:8px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stats .stat{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:2px;align-content:start;min-height:0;justify-content:stretch}
+.stats .stat b{font-size:28px;line-height:1.2;font-variant-numeric:tabular-nums}
+.stats .stat b span{font-size:14px;font-weight:400;color:var(--mute)}
+.stats .stat small{color:var(--mute)}
+.stats .stat.warn{border-color:var(--red)}.stats .stat.warn b{color:var(--red)}
+.step{display:flex;gap:6px;margin-top:6px}
+.step button{padding:0;width:32px;height:28px;line-height:1}
+.modal{margin:auto;width:min(800px,calc(100vw - 24px));max-width:none;max-height:calc(100vh - 24px);overflow:auto;border-radius:14px;padding:22px 26px}
+.modal h2{font-size:24px;margin-bottom:4px}
+.fh{margin-bottom:2px}
 .modal form{display:grid;gap:12px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .actions{display:flex;justify-content:flex-end;gap:8px}
@@ -124,8 +154,20 @@ dialog::backdrop{background:rgba(15,20,35,.4)}
 
 /* 課程表單：時段、顏色、預覽 */
 .lbl{color:var(--mute);font-size:12px;margin-bottom:4px}
-.slots{display:grid;gap:6px;margin-bottom:8px}
-.slot{display:grid;grid-template-columns:76px 1fr 1fr 28px;gap:6px;align-items:center}
+.faint{color:var(--mute);opacity:.8;margin-left:6px}
+.slots{display:grid;gap:10px;margin-bottom:4px}
+.slot{display:grid;gap:4px;padding:8px;border:1px solid var(--line);border-radius:10px}
+.srow{display:grid;grid-template-columns:76px 1fr 1fr 1.3fr 28px;gap:6px;align-items:center}
+.srow .rm{order:5}.srow .sRoom{order:4}
+.swarn{font-size:12px;color:var(--gen);background:color-mix(in srgb,var(--gen) 12%,var(--card));border-radius:6px;padding:5px 8px}
+.swarn.bad{color:var(--red);background:color-mix(in srgb,var(--red) 10%,var(--card))}
+.fgrid{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:26px;margin:8px 0}
+.fmain{display:grid;gap:14px;align-content:start}
+.fside{display:grid;gap:10px;align-content:start;position:sticky;top:0;height:fit-content}
+.psum{color:var(--mute);font-size:12px;line-height:1.7}
+.tip{color:var(--mute);font-size:12px;line-height:1.7;border-top:1px solid var(--line);padding-top:10px}
+.more summary{cursor:pointer;color:var(--pri);font-size:12px}
+.morebody{display:grid;gap:10px;margin-top:10px}
 .rm{border:0;background:none;color:var(--mute);font-size:16px;padding:0}
 .swatches{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .sw{width:28px;height:28px;border-radius:50%;border:2px solid var(--card);padding:0;box-shadow:0 0 0 1px var(--line)}
@@ -134,7 +176,7 @@ dialog::backdrop{background:rgba(15,20,35,.4)}
 .prev{border-left:3px solid var(--c);border-radius:8px;padding:8px 12px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--card))}
 .prev b{display:block}
 .prev small{display:block;opacity:.85}
-.acts{display:flex;gap:8px;margin-bottom:14px}
+.acts{display:flex;gap:8px}
 @keyframes slideIn{from{transform:translateX(30px);opacity:0}}
 @keyframes slideUp{from{transform:translateY(30px);opacity:0}}
 
@@ -158,8 +200,28 @@ dialog::backdrop{background:rgba(15,20,35,.4)}
   .ev b{font-size:11px}.ev small,.chip{display:none}
   .hint{text-align:center}
   .count{font-size:50px}
-  .sheet{margin:auto 0 0;width:100%;height:auto;max-height:88vh;border-radius:18px 18px 0 0;animation:slideUp .22s ease}
-  .db{height:auto;max-height:calc(88vh - 118px)}
+  /* 課程詳情：全螢幕頁面 */
+  .sheet{margin:0;width:100%;max-height:none;height:100%;border-radius:0}
+  .dh{padding:0 0 12px;gap:0;display:block}
+  .dtop{display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:2;background:var(--card);padding:calc(8px + env(safe-area-inset-top,0px)) 14px 8px;border-bottom:1px solid var(--line)}
+  .back{display:block;border:0;background:none;color:var(--pri);font-size:26px;line-height:1;padding:0 8px 2px 0}
+  .dlabel{display:block;flex:1;font-weight:600}
+  .dtop .x{display:none}
+  .dh .acts .ghost{border:0;background:none;color:var(--pri);font-weight:600;padding:6px 4px}
+  .dt{padding:14px 14px 0}
+  .dh h2{font-size:24px}
+  .db{grid-template-columns:1fr;padding:6px 14px calc(28px + env(safe-area-inset-bottom,0px))}
+  /* 新增／編輯課程：全螢幕，預覽放最上面 */
+  .modal{margin:0;width:100%;height:100%;max-height:none;border-radius:0;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(14px + env(safe-area-inset-bottom,0px))}
+  .fgrid{grid-template-columns:1fr;gap:14px}
+  .fside{order:-1;position:static}
+  .tip{display:none}
+  .srow{grid-template-columns:1fr 1fr 1fr 28px}
+  .srow .sRoom{grid-column:1/-1;order:5}.srow .rm{order:4}
+  .modal .actions{position:sticky;bottom:-14px;background:var(--card);padding:10px 0 4px}
+  .modal .actions .primary{flex:1}
+  .two{grid-template-columns:1fr 1fr}
+  .dtForm input{min-width:100%}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
@@ -169,3 +231,5 @@ dialog::backdrop{background:rgba(15,20,35,.4)}
 @media(max-width:760px){.taskbar{margin:0 0 12px}.taskbar h1{font-size:24px}.taskStats{grid-template-columns:repeat(3,1fr);margin-bottom:10px}.stat{padding:0 10px;min-height:54px}.stat strong{font-size:30px}.stat.green{display:none}.taskTools{gap:6px;flex-wrap:wrap}.taskFilters{order:0}.taskFilters button{padding:6px 13px}.courseFilter{order:1;margin-left:auto}.courseFilter select{min-width:0;max-width:125px;padding:8px}.showDone{display:none}.taskRow{grid-template-columns:24px minmax(0,1fr) 42px;gap:8px;min-height:80px;padding:8px 2px}.taskInfo>b{font-size:14px}.taskInfo small{gap:5px;font-size:11px}.taskRemain{font-size:12px}.settingsLayout{display:block}.settingsGroup{margin-bottom:20px}.periodsGroup{display:none}.settingsRight>.settingsGroup:first-child .settingRow:first-of-type,.settingsRight>.settingsGroup:first-child .settingRow:nth-of-type(2){display:none}.dataGroup{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.dataGroup h2{grid-column:1/-1}.dataGroup>label:not(.importButton){grid-column:1/-1}.dataGroup .softButton{padding:10px 5px;font-size:12px}.dataGroup>#toLogin,.dataGroup>#reset{grid-column:1/-1}.nav button[data-view="week"]{order:2}.nav button[data-view="today"]{order:1}.nav button[data-view="tasks"]{order:3}.nav button[data-view="settings"]{order:4}.nav button[data-view="login"]{order:5;display:flex}}
 :root[data-theme="dark"]{--bg:#10131c;--card:#181c28;--ink:#e8ebf4;--mute:#97a0b5;--line:#2a3042;--pri:#6b8cff;--req:#7c9bff;--elec:#4cc38a;--gen:#f0a050;--lab:#a98af0;--pe:#4cc4d8;color-scheme:dark}
 :root[data-theme="light"]{--bg:#f3f5fa;--card:#fff;--ink:#1c2233;--mute:#6b7488;--line:#e4e8f0;--pri:#2f5bea;--req:#2f5bea;--elec:#1f8a5b;--gen:#b45f06;--lab:#6a43c9;--pe:#0f8296;color-scheme:light}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}.dtForm[hidden]{display:none}
+.tasks .tx{color:var(--ink);font-size:14px}.tasks li.done .tx{color:var(--mute)}
